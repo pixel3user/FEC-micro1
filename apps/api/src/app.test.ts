@@ -125,6 +125,10 @@ describe("agent-native public network", () => {
       accepted: true,
       action: arbitraryAction,
     });
+    // Level A: the decision carries a trustworthy status and an optional
+    // follow-up view the host can swap the sandbox to.
+    expect(decision.decision.status).toBe("ok");
+    expect(decision.decision.nextView).toContain("<!doctype html>");
 
     const retryResponse = await app.inject({
       method: "POST",

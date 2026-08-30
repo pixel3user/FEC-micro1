@@ -66,6 +66,15 @@ export class MockModelRuntime implements ModelRuntime {
       },
       statePatch,
       publicSummary: `Replay decision recorded for ${input.action}.`,
+      status: "ok",
+      display: {
+        kind: "confirmation",
+        title: `Done: ${input.action}`,
+        fields: [{ label: "action", value: input.action }],
+      },
+      nextView: `<!doctype html><html><head><meta charset="utf-8"><title>Confirmed</title></head><body><main><h1>Confirmed</h1><p id="s">Replay confirmation for ${escapeHtml(
+        input.action,
+      )}.</p></main></body></html>`,
     };
   }
 

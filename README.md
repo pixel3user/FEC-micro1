@@ -163,6 +163,17 @@ _agent.example.com TXT "agent-manifest=https://api.example.net/.well-known/agent
 
 `GET /v1/resolve/example.com` checks the centralized index first and then that DNS record. This prototype resolves the location but does not yet implement DNSSEC identity verification.
 
+## Evaluation and adversarial testing
+
+A baseline-vs-agent evaluation harness measures discovery quality, task-specific UI, user steps, and cross-provider composition on identical seeded data. See [`docs/evaluation.md`](docs/evaluation.md) for method and live results (agent reached a perfect discovery top-hit rate and produced task-specific UI on every case; the full live run cost about half a cent).
+
+```bash
+MODEL_MODE=mock pnpm --filter @agent-web/api eval   # free, deterministic
+MODEL_MODE=live pnpm --filter @agent-web/api eval    # real numbers, a few tenths of a cent
+```
+
+Adversarial tests (`apps/api/src/adversarial.test.ts`) cover prompt injection in provider data, cross-world state isolation, concurrent-invocation serialization, and hostile-argument echo containment.
+
 ## Validation
 
 ```bash

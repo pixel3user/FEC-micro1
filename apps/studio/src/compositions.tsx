@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { Intro } from "./remotion/compositions/Intro";
 import { Pr1 } from "./remotion/compositions/Pr1";
+import { Pr2 } from "./remotion/compositions/Pr2";
 import { theme } from "./remotion/theme";
 
 export type ShowcaseEntry = {
@@ -31,6 +32,14 @@ export const SHOWCASE: ShowcaseEntry[] = [
       "Reasoning-safe JSON extraction, schema retries, model fallback — verified live.",
     durationInFrames: 600,
     component: Pr1,
+  },
+  {
+    id: "PR2",
+    label: "PR2 · Self-healing UI",
+    blurb:
+      "Sandbox captures runtime errors; the model regenerates a corrected document.",
+    durationInFrames: 610,
+    component: Pr2,
   },
 ];
 

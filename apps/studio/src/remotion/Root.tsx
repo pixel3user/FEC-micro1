@@ -1,6 +1,7 @@
 import { Composition } from "remotion";
 import { Intro } from "./compositions/Intro";
 import { Pr1 } from "./compositions/Pr1";
+import { Pr2 } from "./compositions/Pr2";
 import { theme } from "./theme";
 
 /** Registry of all showcase compositions. One per PR will be added here. */
@@ -19,6 +20,14 @@ export function RemotionRoot() {
         id="PR1"
         component={Pr1}
         durationInFrames={600}
+        fps={theme.fps}
+        width={theme.width}
+        height={theme.height}
+      />
+      <Composition
+        id="PR2"
+        component={Pr2}
+        durationInFrames={610}
         fps={theme.fps}
         width={theme.width}
         height={theme.height}

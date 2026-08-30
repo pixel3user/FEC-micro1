@@ -8,6 +8,7 @@ import {
   Glass,
   Window,
 } from "../components/primitives";
+import { Browser, ProviderCard } from "../components/product";
 import { Terminal, type TermLine } from "../components/Terminal";
 import { theme } from "../theme";
 
@@ -163,13 +164,6 @@ function CodeAct() {
 }
 
 function ProofAct() {
-  const log: TermLine[] = [
-    { text: 'query: "my vision is blurry" (0 shared words)', tone: "muted" },
-    { text: "Clearview Eye Clinic     sim 0.42  [1st]", tone: "good" },
-    { text: "Bulldozer Rental Co.     sim 0.07", tone: "muted" },
-    { text: '{"purpose":"embedding","cost":0.0000006}', tone: "json" },
-    { text: "semantic rank beats lexical  [pass]", tone: "good" },
-  ];
   return (
     <>
       <div style={{ position: "absolute", top: 150, left: 90 }}>
@@ -178,21 +172,89 @@ function ProofAct() {
       <div
         style={{
           position: "absolute",
-          top: 220,
+          top: 210,
           left: 90,
           right: 90,
+          bottom: 170,
           display: "grid",
-          gridTemplateColumns: "1.15fr 0.85fr",
+          gridTemplateColumns: "1.35fr 0.65fr",
           gap: 32,
         }}
       >
-        <Appear delay={6}>
-          <Window title="live discovery" accent={theme.color.green}>
-            <Terminal lines={log} startReveal={14} perLine={18} fontSize={25} />
-          </Window>
+        <Appear delay={6} style={{ height: "100%" }}>
+          <Browser
+            url='agent-web.app/?q="my vision is blurry"'
+            accent={theme.color.green}
+            style={{ height: "100%" }}
+          >
+            <div
+              style={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: theme.font.mono,
+                  fontSize: 20,
+                  color: theme.color.muted,
+                  marginBottom: 16,
+                }}
+              >
+                zero keywords shared with any provider text
+              </div>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 14 }}
+              >
+                <ProviderCard
+                  name="Clearview Eye Clinic"
+                  detail="exams · vision tests · glasses"
+                  score="0.42"
+                  rank={1}
+                  delay={16}
+                  accent={theme.color.green}
+                />
+                <ProviderCard
+                  name="Bulldozer Rental Co."
+                  detail="heavy equipment · not a match"
+                  score="0.07"
+                  rank={2}
+                  delay={30}
+                />
+                <ProviderCard
+                  name="Ledger & Co. Accounting"
+                  detail="tax filing · not a match"
+                  score="0.04"
+                  rank={3}
+                  delay={40}
+                />
+              </div>
+              <div
+                style={{
+                  marginTop: 22,
+                  fontFamily: theme.font.mono,
+                  fontSize: 18,
+                  color: theme.color.muted,
+                }}
+              >
+                keyword search would have returned none of these
+              </div>
+            </div>
+          </Browser>
         </Appear>
-        <Appear delay={16}>
-          <Glass strong style={{ padding: "30px 34px" }}>
+        <Appear delay={20} style={{ height: "100%" }}>
+          <Glass
+            strong
+            style={{
+              height: "100%",
+              padding: "30px 34px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+          >
             <Stat label="Keyword overlap" value="zero" />
             <Stat label="Ranked first" value="eye clinic" />
             <Stat label="Cost / embed" value="$0.0000006" />
@@ -201,7 +263,7 @@ function ProofAct() {
         </Appear>
       </div>
       <Caption
-        delay={22}
+        delay={26}
         text="Real run: the eye clinic ranks above a bulldozer rental for a query with no shared keywords — meaning, not string matching."
       />
     </>

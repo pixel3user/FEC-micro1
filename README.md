@@ -85,11 +85,13 @@ The API applies idempotent schema DDL when it starts.
 
 The configurable default is `deepseek/deepseek-v4-flash-0731`. At implementation time, the [OpenRouter model catalog](https://openrouter.ai/api/v1/models) listed structured-output and tool support with prices around $0.03 per million input tokens and $0.16 per million output tokens. Prices and availability can change, so verify the catalog before a public demo.
 
+Live behaviour has been verified against OpenRouter: provider-world creation and runtime UI generation both return schema-valid JSON, and when the primary model emits reasoning traces or truncates a large document, the runtime strips the trace and falls back to `OPENROUTER_FALLBACK_MODELS`. Observed cost is a fraction of a cent per call. A running cost/usage total is available at `GET /v1/usage`.
+
 Budget controls in this repository:
 
-- One inexpensive model configured for all roles.
-- Per-call output caps.
-- At most one repair call for malformed JSON.
+- One inexpensive primary model with an optional ordered fallback list.
+- Per-call output caps and per-call request timeouts.
+- Robust JSON extraction (strips `<think>` reasoning and fences) plus a single bounded repair retry.
 - PostgreSQL retrieval instead of model-based provider search.
 - Deterministic tests that never contact OpenRouter.
 - Usage and reported cost metadata logged by the API when OpenRouter supplies it.

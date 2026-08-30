@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   DynamicActionResponseSchema,
+  GeneratedExperienceSchema,
   ProviderWorldSchema,
   WorldEventSchema,
   type DynamicActionResponse,
@@ -248,6 +249,27 @@ export class PostgresStore implements Store {
       ],
     );
     return experience;
+  }
+
+  async getLatestExperienceForSession(
+    sessionId: string,
+  ): Promise<GeneratedExperience | null> {
+    const result = await this.pool.query(
+      `SELECT * FROM generated_experiences
+       WHERE session_id=$1 ORDER BY created_at DESC LIMIT 1`,
+      [sessionId],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return GeneratedExperienceSchema.parse({
+      id: row.id,
+      sessionId: row.session_id,
+      title: row.title,
+      html: row.html,
+      rationale: row.rationale,
+      worldIds: row.world_ids,
+      createdAt: toIso(row.created_at),
+    });
   }
 
   async getIdempotentResponse(

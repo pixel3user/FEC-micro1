@@ -7,6 +7,8 @@ import type {
   ExperienceResponse,
   ProviderWorld,
   PublishResponse,
+  RepairExperienceRequest,
+  RepairExperienceResponse,
 } from "@agent-web/contracts";
 
 const API_BASE = (
@@ -35,6 +37,12 @@ export const api = {
   },
   createExperience(input: ExperienceRequest) {
     return request<ExperienceResponse>("/v1/experiences", {
+      method: "POST",
+      body: input,
+    });
+  },
+  repairExperience(input: RepairExperienceRequest) {
+    return request<RepairExperienceResponse>("/v1/experiences/repair", {
       method: "POST",
       body: input,
     });

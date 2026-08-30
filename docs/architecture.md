@@ -4,6 +4,10 @@
 
 The platform fixes only discovery, model access, persistence, sandboxing, transport, and observability. It does not define provider business schemas, action names, workflows, or generated interface layouts. A provider LLM's recorded decision is the prototype's current ground truth.
 
+## Self-healing generated UI
+
+Generated documents run in the sandbox and report runtime errors (`window.onerror` and `unhandledrejection`) back to the host through the same message channel used for actions. When an error is reported, the host can call `POST /v1/experiences/repair` with the session id and the error text. The model receives the previous (broken) HTML plus the error and returns a corrected full document, which is persisted as a new experience for the session and swapped into the sandbox. This keeps the "generated fresh each time" property while making it robust to the occasional broken generation observed in live testing.
+
 ## Runtime flow
 
 1. A provider describes an open-ended service in conversation.

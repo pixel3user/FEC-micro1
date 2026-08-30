@@ -73,6 +73,9 @@ export interface Store {
   createSession(record: SessionRecord): Promise<SessionRecord>;
   getSession(id: string): Promise<SessionRecord | null>;
   saveExperience(experience: GeneratedExperience): Promise<GeneratedExperience>;
+  getLatestExperienceForSession(
+    sessionId: string,
+  ): Promise<GeneratedExperience | null>;
   getIdempotentResponse(
     worldId: string,
     key: string,

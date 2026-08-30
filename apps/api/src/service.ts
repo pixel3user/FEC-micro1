@@ -10,6 +10,8 @@ import {
   type JsonObject,
   type ProviderWorld,
   type PublishResponse,
+  type RepairExperienceRequest,
+  type RepairExperienceResponse,
   type SearchResult,
 } from "@agent-web/contracts";
 import type { AppConfig } from "./config.js";
@@ -186,6 +188,51 @@ export class AgentWebService {
       createdAt,
     });
     return { experience, providers: worlds };
+  }
+
+  async repairExperience(
+    input: RepairExperienceRequest,
+  ): Promise<RepairExperienceResponse> {
+    const session = await this.store.getSession(input.sessionId);
+    if (!session) throw new NotFoundError("Experience session not found.");
+    const previous = await this.store.getLatestExperienceForSession(
+      input.sessionId,
+    );
+    if (!previous)
+      throw new NotFoundError(
+        "No generated experience exists for this session.",
+      );
+
+    const candidates = await Promise.all(
+      session.worldIds.map((worldId) => this.store.getWorldById(worldId)),
+    );
+    const worlds = candidates.filter(
+      (world): world is ProviderWorld => world !== null && world.published,
+    );
+    if (worlds.length === 0) {
+      throw new NotFoundError(
+        "The provider agents for this session are no longer available.",
+      );
+    }
+
+    const repaired = await this.model.repairUi({
+      sessionId: input.sessionId,
+      intent: session.intent,
+      worlds,
+      previousHtml: previous.html,
+      error: input.error,
+      ...(input.context ? { context: input.context } : {}),
+    });
+    const experience = await this.store.saveExperience({
+      id: randomUUID(),
+      sessionId: input.sessionId,
+      title: repaired.title,
+      html: repaired.html,
+      rationale: repaired.rationale,
+      worldIds: worlds.map((world) => world.id),
+      createdAt: new Date().toISOString(),
+    });
+    return { experience, repaired: true };
   }
 
   async invoke(

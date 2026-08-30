@@ -55,4 +55,33 @@ live("OpenRouterRuntime (live)", () => {
     expect(ui.html).toContain(world.id);
     expect(ui.html).toContain("agent.invoke");
   }, 120_000);
+
+  it("repairs a UI given a runtime error and returns a valid full document", async () => {
+    const world = {
+      id: "33333333-3333-4333-8333-333333333333",
+      slug: "repair-demo",
+      name: "Repair Demo Provider",
+      summary: "A provider used to exercise the repair loop.",
+      domain: null,
+      knowledge: { capabilities: ["answer questions"] },
+      instructions: "Interpret requests using provider knowledge.",
+      state: {},
+      searchableText: "repair demo provider questions",
+      published: true,
+      revision: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const broken =
+      '<!doctype html><html><head></head><body><div id="out"></div><script>const data=undefined;document.getElementById("out").textContent=data.map(x=>x).join(",");</script></body></html>';
+    const repaired = await runtime.repairUi({
+      sessionId: "44444444-4444-4444-8444-444444444444",
+      intent: "Show a simple question box for the provider",
+      worlds: [world],
+      previousHtml: broken,
+      error: "TypeError: Cannot read properties of undefined (reading 'map')",
+    });
+    expect(repaired.html.toLowerCase()).toContain("<!doctype html>");
+    expect(repaired.html).toContain("agent.invoke");
+  }, 120_000);
 });

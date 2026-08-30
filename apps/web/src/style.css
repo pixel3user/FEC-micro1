@@ -262,6 +262,35 @@ button.wide {
   border: 0;
   background: white;
 }
+.repair-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1.1rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--line);
+  background: #fff3e6;
+  color: #7a3d00;
+}
+.repair-bar.repairing {
+  background: #eef4ff;
+  color: #1f3d7a;
+}
+.repair-bar.failed {
+  background: #fff0eb;
+  color: #8a2f1f;
+}
+.repair-bar button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--green);
+  color: white;
+  padding: 0.45rem 0.9rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
 .trace-panel {
   border-left: 1px solid var(--line);
   padding: 1.25rem;

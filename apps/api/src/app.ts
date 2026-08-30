@@ -3,6 +3,7 @@ import {
   CreateWorldRequestSchema,
   DynamicActionRequestSchema,
   ExperienceRequestSchema,
+  RepairExperienceRequestSchema,
   SearchRequestSchema,
 } from "@agent-web/contracts";
 import cors from "@fastify/cors";
@@ -115,6 +116,15 @@ export async function buildApp(
     async (request, reply) => {
       const input = ExperienceRequestSchema.parse(request.body);
       return reply.code(201).send(await service.createExperience(input));
+    },
+  );
+
+  app.post(
+    "/v1/experiences/repair",
+    { config: { rateLimit: { max: 20, timeWindow: "1 minute" } } },
+    async (request, reply) => {
+      const input = RepairExperienceRequestSchema.parse(request.body);
+      return reply.code(201).send(await service.repairExperience(input));
     },
   );
 

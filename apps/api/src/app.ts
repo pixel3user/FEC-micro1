@@ -18,6 +18,11 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "./errors.js";
+import {
+  HashingEmbedder,
+  OpenRouterEmbedder,
+  type Embedder,
+} from "./model/embeddings.js";
 import { createModelRuntime, type ModelRuntime } from "./model/index.js";
 import { getUsageTotals } from "./model/usage.js";
 import { resolveDnsManifest } from "./resolver.js";
@@ -28,6 +33,7 @@ export type AppDependencies = {
   config?: AppConfig;
   store?: Store;
   model?: ModelRuntime;
+  embedder?: Embedder;
 };
 
 export async function buildApp(
@@ -36,10 +42,15 @@ export async function buildApp(
   const config = dependencies.config ?? loadConfig();
   const store = dependencies.store ?? createStore(config);
   const model = dependencies.model ?? createModelRuntime(config);
+  const embedder =
+    dependencies.embedder ??
+    (config.modelMode === "mock"
+      ? new HashingEmbedder()
+      : new OpenRouterEmbedder(config));
   await store.initialize();
 
   const app = Fastify({ logger: { level: config.logLevel } });
-  const service = new AgentWebService(store, model, config);
+  const service = new AgentWebService(store, model, config, embedder);
   await app.register(cors, {
     origin: true,
     methods: ["GET", "POST", "OPTIONS"],

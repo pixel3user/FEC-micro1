@@ -16,6 +16,7 @@ import {
 } from "@agent-web/contracts";
 import type { AppConfig } from "./config.js";
 import { ConflictError, NotFoundError, UnauthorizedError } from "./errors.js";
+import { cosineSimilarity, type Embedder } from "./model/embeddings.js";
 import type { ModelRuntime } from "./model/index.js";
 import type { Store, WorldDefinition } from "./storage/types.js";
 import {
@@ -31,7 +32,16 @@ export class AgentWebService {
     private readonly store: Store,
     private readonly model: ModelRuntime,
     private readonly config: AppConfig,
+    private readonly embedder: Embedder,
   ) {}
+
+  private embeddingText(world: {
+    name: string;
+    summary: string;
+    searchableText: string;
+  }): string {
+    return `${world.name}\n${world.summary}\n${world.searchableText}`;
+  }
 
   async createWorld(input: CreateWorldRequest): Promise<CreateWorldResponse> {
     const draft = await this.model.createWorld({
@@ -119,6 +129,7 @@ export class AgentWebService {
 
   async publish(worldId: string): Promise<PublishResponse> {
     const world = await this.store.publishWorld(worldId);
+    await this.indexEmbedding(world);
     await this.store.appendEvent({
       worldId,
       sessionId: null,
@@ -132,15 +143,76 @@ export class AgentWebService {
     };
   }
 
+  /**
+   * Computes and stores the world embedding for semantic discovery. Failures
+   * are non-fatal: publishing still succeeds and search falls back to lexical.
+   */
+  private async indexEmbedding(world: ProviderWorld): Promise<void> {
+    if (!this.embedder.available) return;
+    try {
+      const vector = await this.embedder.embed(this.embeddingText(world));
+      await this.store.setWorldEmbedding(world.id, vector);
+    } catch {
+      // Non-fatal — lexical search remains available.
+    }
+  }
+
   async search(query: string, limit: number): Promise<SearchResult[]> {
     if (!query.trim()) {
       const worlds = await this.store.listPublishedWorlds(limit);
       return worlds.map((world) => ({ world, score: 0 }));
     }
-    const results = await this.store.searchWorlds(query, limit);
-    if (results.length > 0) return results;
-    const fallback = await this.store.listPublishedWorlds(limit);
-    return fallback.map((world) => ({ world, score: 0 }));
+
+    const lexical = await this.store.searchWorlds(query, Math.max(limit, 12));
+    const semantic = await this.semanticScores(query, Math.max(limit, 20));
+
+    if (semantic.size === 0) {
+      if (lexical.length > 0) return lexical.slice(0, limit);
+      const fallback = await this.store.listPublishedWorlds(limit);
+      return fallback.map((world) => ({ world, score: 0 }));
+    }
+
+    // Blend: normalized lexical rank + cosine similarity. Union of both sets.
+    const merged = new Map<string, { world: ProviderWorld; score: number }>();
+    const lexicalMax = lexical[0]?.score || 1;
+    lexical.forEach((entry) => {
+      const normalized = lexicalMax > 0 ? entry.score / lexicalMax : 0;
+      merged.set(entry.world.id, {
+        world: entry.world,
+        score: normalized * 0.4,
+      });
+    });
+    for (const [world, similarity] of semantic) {
+      const existing = merged.get(world.id);
+      const semanticContribution = similarity * 0.6;
+      if (existing) existing.score += semanticContribution;
+      else merged.set(world.id, { world, score: semanticContribution });
+    }
+
+    return [...merged.values()]
+      .sort((left, right) => right.score - left.score)
+      .slice(0, limit);
+  }
+
+  private async semanticScores(
+    query: string,
+    limit: number,
+  ): Promise<Map<ProviderWorld, number>> {
+    const scores = new Map<ProviderWorld, number>();
+    if (!this.embedder.available) return scores;
+    let queryVector: number[];
+    try {
+      queryVector = await this.embedder.embed(query);
+    } catch {
+      return scores;
+    }
+    const candidates =
+      await this.store.listPublishedWorldsWithEmbeddings(limit);
+    for (const { world, embedding } of candidates) {
+      if (!embedding) continue;
+      scores.set(world, cosineSimilarity(queryVector, embedding));
+    }
+    return scores;
   }
 
   async createExperience(

@@ -9,6 +9,7 @@ import type { FastifyInstance } from "fastify";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { buildApp } from "./app.js";
 import type { AppConfig } from "./config.js";
+import { HashingEmbedder } from "./model/embeddings.js";
 import { MockModelRuntime } from "./model/mock.js";
 import { MemoryStore } from "./storage/memory-store.js";
 
@@ -21,6 +22,8 @@ const config: AppConfig = {
   openRouterBaseUrl: "https://openrouter.ai/api/v1",
   openRouterModel: "mock",
   openRouterFallbackModels: [],
+  openRouterEmbeddingModel: "mock-embedding",
+  semanticSearch: true,
   publicApiUrl: "http://localhost:8787",
   webOrigins: ["http://localhost:5173"],
 };
@@ -33,6 +36,7 @@ describe("agent-native public network", () => {
       config,
       store: new MemoryStore(),
       model: new MockModelRuntime(),
+      embedder: new HashingEmbedder(256),
     });
   });
 
@@ -208,5 +212,46 @@ describe("agent-native public network", () => {
       },
     });
     expect(response.statusCode).toBe(404);
+  });
+
+  it("ranks a semantically relevant provider above an unrelated one", async () => {
+    const publish = async (preferredName: string, message: string) => {
+      const created = CreateWorldResponseSchema.parse(
+        (
+          await app.inject({
+            method: "POST",
+            url: "/v1/worlds",
+            payload: { preferredName, message },
+          })
+        ).json(),
+      );
+      await app.inject({
+        method: "POST",
+        url: `/v1/worlds/${created.world.id}/publish`,
+        headers: { "x-owner-token": created.ownerToken },
+      });
+      return created.world.id;
+    };
+
+    const bikeId = await publish(
+      "Cog and Chain",
+      "A bicycle repair co-op that services commuter bikes and stocks common parts.",
+    );
+    await publish(
+      "Blue Note Studio",
+      "A music school offering jazz saxophone and piano lessons for adults.",
+    );
+
+    const searchResponse = await app.inject({
+      method: "GET",
+      url: `/v1/index/search?query=${encodeURIComponent("fix my bicycle")}`,
+    });
+    expect(searchResponse.statusCode).toBe(200);
+    const results = searchResponse.json().results as Array<{
+      world: { id: string };
+      score: number;
+    }>;
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].world.id).toBe(bikeId);
   });
 });

@@ -19,6 +19,10 @@ Generated documents run in the sandbox and report runtime errors (`window.onerro
 7. The action name and arguments are unrestricted JSON chosen at runtime. The provider model interprets them using its world and event history.
 8. The model's decision and state patch are appended to the event log and become context for later decisions.
 
+## Discovery: blended semantic + lexical
+
+When a world is published, the platform embeds its name/summary/searchable text with a low-cost embedding model and stores the vector. Discovery embeds the query, scores published worlds by cosine similarity, and blends that (weight 0.6) with the normalized PostgreSQL full-text lexical rank (weight 0.4). This lets intent match meaning even without shared keywords (verified live: an eye clinic ranks above a bulldozer rental for "my vision is blurry"), while lexical overlap still contributes. Embedding failures are non-fatal and the system degrades to lexical-only search; `SEMANTIC_SEARCH=off` disables embeddings entirely. Tests use a deterministic hashing embedder so the default suite spends nothing.
+
 ## Scalable public index
 
 The API is stateless. Shared state lives in PostgreSQL, allowing multiple API replicas behind a load balancer. Search uses a PostgreSQL full-text GIN index to avoid a separate search service for the prototype. The storage interface also has an in-memory implementation for deterministic tests and a zero-setup local demonstration.

@@ -1,0 +1,22 @@
+{
+  "name": "agent-native-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An agent-native public index where providers publish conversational worlds and LLMs generate interfaces and actions at runtime.",
+  "packageManager": "pnpm@10.15.1",
+  "scripts": {
+    "build": "pnpm --recursive --sort run build",
+    "dev": "pnpm --parallel --filter @agent-web/api --filter @agent-web/web run dev",
+    "test": "pnpm --filter @agent-web/contracts build && pnpm --recursive --sort run test",
+    "typecheck": "pnpm --filter @agent-web/contracts build && pnpm --recursive --sort run typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

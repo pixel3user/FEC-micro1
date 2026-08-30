@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: agentweb
+      POSTGRES_USER: agentweb
+      POSTGRES_PASSWORD: agentweb
+    volumes:
+      - agentweb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentweb -d agentweb"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: deploy/api.Dockerfile
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: 8787
+      DATABASE_URL: postgresql://agentweb:agentweb@postgres:5432/agentweb
+      MODEL_MODE: ${MODEL_MODE:-mock}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-deepseek/deepseek-v4-flash-0731}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8787}
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:5173}
+    ports:
+      - "8787:8787"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/web.Dockerfile
+      args:
+        VITE_API_URL: ${PUBLIC_API_URL:-http://localhost:8787}
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  agentweb-data:

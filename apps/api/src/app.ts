@@ -18,6 +18,7 @@ import {
   UnauthorizedError,
 } from "./errors.js";
 import { createModelRuntime, type ModelRuntime } from "./model/index.js";
+import { getUsageTotals } from "./model/usage.js";
 import { resolveDnsManifest } from "./resolver.js";
 import { AgentWebService } from "./service.js";
 import { createStore, type Store } from "./storage/index.js";
@@ -53,6 +54,8 @@ export async function buildApp(
     model: config.modelMode === "mock" ? "mock" : config.openRouterModel,
     persistence: config.databaseUrl ? "postgresql" : "memory",
   }));
+
+  app.get("/v1/usage", async () => getUsageTotals());
 
   app.post(
     "/v1/worlds",

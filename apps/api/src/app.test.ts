@@ -19,6 +19,7 @@ const config: AppConfig = {
   modelMode: "mock",
   openRouterBaseUrl: "https://openrouter.ai/api/v1",
   openRouterModel: "mock",
+  openRouterFallbackModels: [],
   publicApiUrl: "http://localhost:8787",
   webOrigins: ["http://localhost:5173"],
 };

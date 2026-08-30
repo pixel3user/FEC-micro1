@@ -7,6 +7,8 @@ import { z } from "zod";
 import type { AppConfig } from "../config.js";
 import { ModelError } from "../errors.js";
 import { slugify } from "../utils.js";
+import { extractJsonObject } from "./json-extract.js";
+import { recordUsage } from "./usage.js";
 import type { GeneratedUiDraft, ModelRuntime, WorldDraft } from "./types.js";
 
 const WorldDraftSchema = z.object({
@@ -32,8 +34,20 @@ type OpenRouterResponse = {
   error?: { message?: string };
 };
 
+const SYSTEM_PROMPT =
+  "You output exactly one strict JSON object. No markdown fences, no prose, no reasoning text, no <think> segments before or after the object. The response must start with { and end with }.";
+
 export class OpenRouterRuntime implements ModelRuntime {
-  constructor(private readonly config: AppConfig) {}
+  private readonly models: string[];
+
+  constructor(private readonly config: AppConfig) {
+    this.models = [
+      config.openRouterModel,
+      ...config.openRouterFallbackModels,
+    ].filter(
+      (model, index, all) => model.length > 0 && all.indexOf(model) === index,
+    );
+  }
 
   async createWorld(input: {
     providerMessage: string;
@@ -78,8 +92,9 @@ export class OpenRouterRuntime implements ModelRuntime {
     return this.callJson(
       "runtime-ui",
       GeneratedUiDraftSchema,
-      `Write a completely new, polished, standalone HTML document for this specific user intent. Generate the interface from scratch now; do not select or describe a template. Include all CSS and JavaScript inline and use no external libraries, network calls, forms that navigate, or parent-window access. Make it responsive and genuinely useful.\n\nThe sandbox provides exactly one effect API:\nwindow.agent.invoke({ worldId: string, action: string, arguments: object }) -> Promise<{ eventId, worldRevision, decision: { decision, result, statePatch, publicSummary } }>\n\nYou choose every action name and argument structure at runtime based on the intent. There is no predefined action vocabulary. Use the listed provider world IDs exactly. Handle loading, success, and error states inside the generated page. Render untrusted returned text with textContent, never innerHTML. Return only JSON with title, html, rationale. The html must be a full document beginning with <!doctype html>.\n\nSession: ${input.sessionId}\nUser intent: ${input.intent}\nAvailable provider worlds:\n${JSON.stringify(input.worlds)}`,
+      buildUiPrompt(input),
       this.config.maxModelOutputTokens,
+      { maxAttemptsPerModel: 1, timeoutMs: 75_000 },
     );
   }
 
@@ -88,6 +103,7 @@ export class OpenRouterRuntime implements ModelRuntime {
     schema: z.ZodType<T>,
     userPrompt: string,
     tokenLimit: number,
+    options: { maxAttemptsPerModel?: number; timeoutMs?: number } = {},
   ): Promise<T> {
     if (!this.config.openRouterApiKey) {
       throw new ModelError(
@@ -95,13 +111,50 @@ export class OpenRouterRuntime implements ModelRuntime {
       );
     }
 
-    let correction = "";
-    let previous = "";
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const response = await fetch(
+    const maxAttempts = options.maxAttemptsPerModel ?? 2;
+    const timeoutMs = options.timeoutMs ?? 45_000;
+    const errors: string[] = [];
+    for (const model of this.models) {
+      let correction = "";
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        try {
+          const { content } = await this.request(
+            model,
+            userPrompt + correction,
+            tokenLimit,
+            purpose,
+            timeoutMs,
+          );
+          return schema.parse(extractJsonObject(content));
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : String(error);
+          errors.push(`${model} attempt ${attempt + 1}: ${detail}`);
+          if (isHardModelFailure(error)) break; // move to the next model
+          correction = `\n\nYour previous output was invalid: ${detail}\nReturn the entire corrected JSON object only.`;
+        }
+      }
+    }
+    throw new ModelError(
+      `${purpose} failed for all models. ${errors.join(" | ")}`,
+    );
+  }
+
+  private async request(
+    model: string,
+    prompt: string,
+    tokenLimit: number,
+    purpose: string,
+    timeoutMs: number,
+  ): Promise<{ content: string }> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    let response: Response;
+    try {
+      response = await fetch(
         `${this.config.openRouterBaseUrl}/chat/completions`,
         {
           method: "POST",
+          signal: controller.signal,
           headers: {
             Authorization: `Bearer ${this.config.openRouterApiKey}`,
             "Content-Type": "application/json",
@@ -109,14 +162,10 @@ export class OpenRouterRuntime implements ModelRuntime {
             "X-Title": "Agent Native Web Prototype",
           },
           body: JSON.stringify({
-            model: this.config.openRouterModel,
+            model,
             messages: [
-              {
-                role: "system",
-                content:
-                  "Follow the requested JSON shape exactly. Return a single JSON object with no markdown fences or prose outside it.",
-              },
-              { role: "user", content: `${userPrompt}${correction}` },
+              { role: "system", content: SYSTEM_PROMPT },
+              { role: "user", content: prompt },
             ],
             response_format: { type: "json_object" },
             temperature: 0.15,
@@ -125,35 +174,57 @@ export class OpenRouterRuntime implements ModelRuntime {
           }),
         },
       );
-      const payload = (await response.json()) as OpenRouterResponse;
-      if (!response.ok) {
-        throw new ModelError(
-          payload.error?.message ??
-            `OpenRouter returned HTTP ${response.status}.`,
-        );
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new ModelError(`Model call timed out after ${timeoutMs}ms.`);
       }
-      const content = extractContent(payload);
-      try {
-        const parsed = schema.parse(JSON.parse(stripCodeFence(content)));
-        if (payload.usage) {
-          console.info(
-            JSON.stringify({
-              purpose,
-              model: this.config.openRouterModel,
-              usage: payload.usage,
-            }),
-          );
-        }
-        return parsed;
-      } catch (error) {
-        previous = content.slice(0, 20_000);
-        correction = `\n\nYour previous output failed JSON validation. Correct it and return the entire object again. Previous output:\n${previous}\nValidation error:\n${String(error)}`;
-      }
+      throw error;
+    } finally {
+      clearTimeout(timer);
     }
-    throw new ModelError(
-      `${purpose} did not return valid JSON after one repair attempt.`,
-    );
+
+    const payload = (await response
+      .json()
+      .catch(() => ({}))) as OpenRouterResponse;
+    if (!response.ok) {
+      const message =
+        payload.error?.message ??
+        `OpenRouter returned HTTP ${response.status}.`;
+      const error = new ModelError(message) as ModelError & { hard?: boolean };
+      error.hard =
+        response.status === 404 ||
+        response.status === 401 ||
+        response.status === 403;
+      throw error;
+    }
+
+    const content = extractContent(payload);
+    if (payload.usage) {
+      recordUsage({
+        purpose,
+        model,
+        cost: payload.usage.cost ?? 0,
+        usage: payload.usage,
+      });
+    }
+    return { content };
   }
+}
+
+function buildUiPrompt(
+  input: Parameters<ModelRuntime["generateUi"]>[0],
+): string {
+  return `Write a completely new, polished, standalone HTML document for this specific user intent. Generate the interface from scratch now; do not select or describe a template. Include all CSS and JavaScript inline and use no external libraries, network calls, forms that navigate, or parent-window access. Make it responsive and genuinely useful.
+
+The sandbox provides exactly one effect API:
+window.agent.invoke({ worldId: string, action: string, arguments: object }) -> Promise<{ eventId, worldRevision, decision: { decision, result, statePatch, publicSummary } }>
+
+You choose every action name and argument structure at runtime based on the intent. There is no predefined action vocabulary. Use the listed provider world IDs exactly. Handle loading, success, and error states inside the generated page. Render untrusted returned text with textContent, never innerHTML. Wrap event handlers in try/catch and show a visible error message on failure. Keep the document focused and under about 160 lines so it returns quickly and completely. Return only JSON with title, html, rationale. The html must be a full document beginning with <!doctype html>.
+
+Session: ${input.sessionId}
+User intent: ${input.intent}
+Available provider worlds:
+${JSON.stringify(input.worlds)}`;
 }
 
 function extractContent(payload: OpenRouterResponse): string {
@@ -164,9 +235,11 @@ function extractContent(payload: OpenRouterResponse): string {
   throw new ModelError("OpenRouter returned no message content.");
 }
 
-function stripCodeFence(value: string): string {
-  return value
-    .trim()
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/\s*```$/, "");
+function isHardModelFailure(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "hard" in error &&
+    (error as { hard?: boolean }).hard === true
+  );
 }

@@ -25,8 +25,19 @@ This is deliberately not a conventional API marketplace:
 - Optimistic revision control and idempotent action retries.
 - Docker deployment and deterministic no-credit tests.
 
+## Showcase (interactive, no video render)
+
+A developer-facing walkthrough of the repository — the thesis and one chapter per PR, plus an end-to-end workflow — built with [Remotion](https://remotion.dev). It runs live in the browser via `@remotion/player` (play / pause / scrub); no MP4 export is required. Each PR chapter follows the same three acts: the problem, condensed-but-faithful code from the repo, and the real captured live evidence.
+
+- Live player (published from `main`): https://pixel3user.github.io/FEC-micro1/
+- Run locally: `pnpm --filter "@agent-web/studio" dev`
+- Remotion editor with timeline: `pnpm --filter "@agent-web/studio" studio`
+
+Captions are on-screen; a voice track can be layered later without changing the compositions.
+
 ## Repository
 
+- `apps/studio` — interactive Remotion showcase (light glass theme, in-browser player, Pages workflow).
 - `apps/api` — stateless Fastify API, index, worlds, model runtime, and persistence.
 - `apps/web` — provider studio, discovery, generated-code sandbox, and decision trace.
 - `packages/contracts` — transport envelopes only; no business action definitions.

@@ -5,7 +5,9 @@ import { Pr2 } from "./remotion/compositions/Pr2";
 import { Pr3 } from "./remotion/compositions/Pr3";
 import { Pr4 } from "./remotion/compositions/Pr4";
 import { Pr5 } from "./remotion/compositions/Pr5";
+import { SubmissionVideo } from "./remotion/compositions/SubmissionVideo";
 import { Workflow } from "./remotion/compositions/Workflow";
+import { submission } from "./remotion/submission/design";
 import { theme } from "./remotion/theme";
 
 export type ShowcaseEntry = {
@@ -22,6 +24,14 @@ export type ShowcaseEntry = {
  * be added as each composition lands.
  */
 export const SHOWCASE: ShowcaseEntry[] = [
+  {
+    id: "SubmissionVideo",
+    label: "Submission video · Internet After Interfaces",
+    blurb:
+      "The complete micro1 Agentic Workflows Hackathon story: problem, reasoning model, novel accessibility outcome, market contrast, capabilities, context, tools, and memory.",
+    durationInFrames: submission.durationInFrames,
+    component: SubmissionVideo,
+  },
   {
     id: "Intro",
     label: "Intro",

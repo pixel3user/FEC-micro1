@@ -103,11 +103,33 @@ export const DynamicActionRequestSchema = z.object({
 });
 export type DynamicActionRequest = z.infer<typeof DynamicActionRequestSchema>;
 
+export const DecisionDisplayFieldSchema = z.object({
+  label: z.string().min(1).max(200),
+  value: z.string().min(1).max(2_000),
+});
+export type DecisionDisplayField = z.infer<typeof DecisionDisplayFieldSchema>;
+
+export const DecisionDisplaySchema = z.object({
+  kind: z.enum(["confirmation", "result", "form", "notice"]).default("result"),
+  title: z.string().min(1).max(300),
+  fields: z.array(DecisionDisplayFieldSchema).max(20).default([]),
+});
+export type DecisionDisplay = z.infer<typeof DecisionDisplaySchema>;
+
 export const DynamicActionDecisionSchema = z.object({
   decision: z.string().min(1).max(10_000),
   result: JsonValueSchema,
   statePatch: JsonObjectSchema,
   publicSummary: z.string().min(1).max(2_000),
+  // Outcome status the UI can trust — never a free-text guess.
+  status: z.enum(["ok", "needs_input", "declined", "error"]).default("ok"),
+  // Structured render hint so the current UI can show the outcome without
+  // inventing its own conventions.
+  display: DecisionDisplaySchema.optional(),
+  // Level A: an optional full follow-up document the agent wants shown next.
+  // Same sandbox contract as generated experiences (starts with <!doctype html>,
+  // may call window.agent.invoke). The host swaps the sandbox to this view.
+  nextView: z.string().min(50).max(500_000).optional(),
 });
 export type DynamicActionDecision = z.infer<typeof DynamicActionDecisionSchema>;
 

@@ -83,8 +83,19 @@ export class OpenRouterRuntime implements ModelRuntime {
     return this.callJson(
       "provider-decision",
       DynamicActionDecisionSchema,
-      `You are the authoritative reasoning process for this prototype provider world. Interpret the consumer's arbitrary action without relying on a predefined action catalog. Decide what happens using the world's knowledge, instructions, current state, consumer intent, and event history. Your decision becomes this prototype's ground truth. Do not pretend an external real-world effect happened; describe the provider-world result. Return JSON with: decision (reasoning/conclusion for the user), result (any JSON value useful to the generated UI), statePatch (an object merged into persistent world state), and publicSummary.\n\nProvider world:\n${JSON.stringify(input.world)}\n\nRecent events:\n${JSON.stringify(input.events)}\n\nConsumer intent:\n${input.consumerIntent}\n\nArbitrary action name:\n${input.action}\n\nArbitrary arguments:\n${JSON.stringify(input.arguments)}`,
-      1_500,
+      `You are the authoritative reasoning process for this prototype provider world. Interpret the consumer's arbitrary action without relying on a predefined action catalog. Decide what happens using the world's knowledge, instructions, current state, consumer intent, and event history. Your decision becomes this prototype's ground truth. Do not pretend an external real-world effect happened; describe the provider-world result.
+
+Return JSON with these fields:
+- decision: your reasoning/conclusion for the user (free text).
+- result: any JSON value useful to the UI.
+- statePatch: an object merged into persistent world state.
+- publicSummary: one concise sentence describing the outcome.
+- status: exactly one of "ok" | "needs_input" | "declined" | "error". Use "ok" when the action was carried out; "needs_input" when you require more information; "declined" when you refuse; "error" only for genuine failures.
+- display (optional): a structured render hint for the CURRENT interface, with kind ("confirmation" | "result" | "form" | "notice"), title, and fields (array of {label, value} strings). Prefer providing this so the UI can show the outcome without guessing.
+- nextView (optional): ONLY when the interface should now change to a different screen (e.g. a confirmation page after a purchase, a results layout after a search, or a form when you need more input). When present it must be a COMPLETE standalone HTML document beginning with <!doctype html>, all CSS/JS inline, no external resources, and it may call window.agent.invoke({ worldId, action, arguments }) exactly like the original UI. Use the world id ${JSON.stringify(input.world.id)}. Omit nextView entirely if the current screen is already adequate.
+
+Provider world:\n${JSON.stringify(input.world)}\n\nRecent events:\n${JSON.stringify(input.events)}\n\nConsumer intent:\n${input.consumerIntent}\n\nArbitrary action name:\n${input.action}\n\nArbitrary arguments:\n${JSON.stringify(input.arguments)}`,
+      2_500,
     );
   }
 
@@ -248,15 +259,24 @@ export class OpenRouterRuntime implements ModelRuntime {
   }
 }
 
+const RESPONSE_CONTRACT = `The sandbox provides exactly one effect API:
+window.agent.invoke({ worldId, action, arguments }) -> Promise
+
+CRITICAL — how to read the resolved value. It is:
+{ eventId, worldRevision, decision: { decision, result, statePatch, publicSummary, status, display?, nextView? } }
+- If the promise RESOLVES, the action succeeded — do NOT look for a "success" field (there is none) and do NOT compare decision.decision to any fixed string.
+- Show decision.publicSummary to the user; treat decision.status ("ok" | "needs_input" | "declined" | "error") for styling if you wish.
+- Only a THROWN/REJECTED promise (your catch block) is a failure.
+- The host automatically swaps the whole page when decision.nextView is present, so you do not need to handle nextView yourself.`;
+
 function buildUiPrompt(
   input: Parameters<ModelRuntime["generateUi"]>[0],
 ): string {
   return `Write a completely new, polished, standalone HTML document for this specific user intent. Generate the interface from scratch now; do not select or describe a template. Include all CSS and JavaScript inline and use no external libraries, network calls, forms that navigate, or parent-window access. Make it responsive and genuinely useful.
 
-The sandbox provides exactly one effect API:
-window.agent.invoke({ worldId: string, action: string, arguments: object }) -> Promise<{ eventId, worldRevision, decision: { decision, result, statePatch, publicSummary } }>
+${RESPONSE_CONTRACT}
 
-You choose every action name and argument structure at runtime based on the intent. There is no predefined action vocabulary. Use the listed provider world IDs exactly. Handle loading, success, and error states inside the generated page. Render untrusted returned text with textContent, never innerHTML. Wrap event handlers in try/catch and show a visible error message on failure. Keep the document focused and under about 160 lines so it returns quickly and completely. Return only JSON with title, html, rationale. The html must be a full document beginning with <!doctype html>.
+You choose every action name and argument structure at runtime based on the intent. There is no predefined action vocabulary. Use the listed provider world IDs exactly. Handle loading, success, and error states inside the generated page. Render untrusted returned text with textContent, never innerHTML. Wrap event handlers in try/catch and show a visible message using decision.publicSummary on success and error.message in catch. Keep the document focused and under about 160 lines so it returns quickly and completely. Return only JSON with title, html, rationale. The html must be a full document beginning with <!doctype html>.
 
 Session: ${input.sessionId}
 User intent: ${input.intent}
@@ -269,10 +289,9 @@ function buildCompositionUiPrompt(
 ): string {
   return `Write a completely new, polished, standalone HTML document that helps the user accomplish an intent that spans MULTIPLE provider worlds. Generate it from scratch now; do not use a template. The interface should let the user progress through the plan and invoke each provider world as needed, showing how the results combine.
 
-The sandbox provides exactly one effect API:
-window.agent.invoke({ worldId: string, action: string, arguments: object }) -> Promise<{ eventId, worldRevision, decision: { decision, result, statePatch, publicSummary } }>
+${RESPONSE_CONTRACT}
 
-You choose action names and arguments at runtime; there is no predefined vocabulary. Use each world's exact id. Inline all CSS/JS, no external libraries, no network calls or parent access. Render untrusted returned text with textContent, never innerHTML. Wrap handlers in try/catch and show visible errors. Keep it under about 200 lines. Return only JSON with title, html, rationale; html must begin with <!doctype html>.
+You choose action names and arguments at runtime; there is no predefined vocabulary. Use each world's exact id. Inline all CSS/JS, no external libraries, no network calls or parent access. Render untrusted returned text with textContent, never innerHTML. Wrap handlers in try/catch and show visible messages (decision.publicSummary on success, error.message in catch). Keep it under about 200 lines. Return only JSON with title, html, rationale; html must begin with <!doctype html>.
 
 Session: ${input.sessionId}
 User intent: ${input.intent}

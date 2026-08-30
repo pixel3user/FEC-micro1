@@ -129,4 +129,36 @@ live("OpenRouterRuntime (live)", () => {
     expect(repaired.html.toLowerCase()).toContain("<!doctype html>");
     expect(repaired.html).toContain("agent.invoke");
   }, 120_000);
+
+  it("returns a trustworthy status and an optional follow-up view for a purchase action", async () => {
+    const world = {
+      id: "88888888-8888-4888-8888-888888888888",
+      slug: "gameshop",
+      name: "GameShop",
+      summary: "A retailer specializing in PlayStation video games.",
+      domain: null,
+      knowledge: { capabilities: ["sell PS5 games", "check stock"] },
+      instructions: "Sell PlayStation titles; confirm orders clearly.",
+      state: {},
+      searchableText: "playstation ps5 games retailer god of war",
+      published: true,
+      revision: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const decision = await runtime.decideAction({
+      world,
+      events: [],
+      consumerIntent: "buy God of War for PS5",
+      action: "purchaseGame",
+      arguments: { title: "God of War", console: "PS5" },
+    });
+    // The purchase should be a clean success the UI can trust.
+    expect(decision.status).toBe("ok");
+    expect(decision.publicSummary.length).toBeGreaterThan(0);
+    // If the agent supplies a follow-up view, it must be a full document.
+    if (decision.nextView) {
+      expect(decision.nextView.toLowerCase()).toContain("<!doctype html>");
+    }
+  }, 90_000);
 });

@@ -47,15 +47,17 @@ export function GeneratedExperienceFrame({
   const [experience, setExperience] = useState(initialExperience);
   const [traces, setTraces] = useState<Trace[]>([]);
   const [repair, setRepair] = useState<RepairState>({ status: "healthy" });
-  const source = useMemo(
-    () => injectAgentBridge(experience.html),
-    [experience.html],
-  );
+  // Level A: an agent-supplied follow-up document that replaces the current
+  // view when a decision returns `nextView`.
+  const [agentView, setAgentView] = useState<string | null>(null);
+  const activeHtml = agentView ?? experience.html;
+  const source = useMemo(() => injectAgentBridge(activeHtml), [activeHtml]);
 
   useEffect(() => {
     setExperience(initialExperience);
     setTraces([]);
     setRepair({ status: "healthy" });
+    setAgentView(null);
   }, [initialExperience]);
 
   useEffect(() => {
@@ -119,6 +121,13 @@ export function GeneratedExperienceFrame({
           ),
         );
         sendResult(requestId, true, result);
+        // Level A: if the agent proposed a follow-up view, swap the sandbox to
+        // it. The result was already returned above so the current UI can also
+        // react before it is replaced.
+        if (result.decision.nextView) {
+          const nextView = result.decision.nextView;
+          setTimeout(() => setAgentView(nextView), 400);
+        }
       } catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
         setTraces((current) =>

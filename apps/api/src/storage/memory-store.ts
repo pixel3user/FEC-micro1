@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type {
   DynamicActionResponse,
   GeneratedExperience,
+  JsonObject,
   ProviderWorld,
   SearchResult,
   WorldEvent,
@@ -265,7 +266,7 @@ export class MemoryStore implements Store {
       payload: {
         action: input.action,
         arguments: input.arguments,
-        decision: input.decision,
+        decision: JSON.parse(JSON.stringify(input.decision)) as JsonObject,
       },
     });
     const response: DynamicActionResponse = {

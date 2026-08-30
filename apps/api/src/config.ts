@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const EnvironmentSchema = z.object({
   API_HOST: z.string().default("0.0.0.0"),
+  // Cloud Run (and most PaaS) inject PORT; it takes precedence over API_PORT.
+  PORT: z.coerce.number().int().positive().optional(),
   API_PORT: z.coerce.number().int().positive().default(8787),
   DATABASE_URL: z.string().optional(),
   LOG_LEVEL: z.string().default("info"),
@@ -47,7 +49,7 @@ export function loadConfig(
   const parsed = EnvironmentSchema.parse(environment);
   return {
     apiHost: parsed.API_HOST,
-    apiPort: parsed.API_PORT,
+    apiPort: parsed.PORT ?? parsed.API_PORT,
     ...(parsed.DATABASE_URL ? { databaseUrl: parsed.DATABASE_URL } : {}),
     logLevel: parsed.LOG_LEVEL,
     maxModelOutputTokens: parsed.MAX_MODEL_OUTPUT_TOKENS,

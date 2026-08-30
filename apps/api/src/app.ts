@@ -52,8 +52,19 @@ export async function buildApp(
 
   const app = Fastify({ logger: { level: config.logLevel } });
   const service = new AgentWebService(store, model, config, embedder);
+  // Allow the configured web origin(s); "*" opts into permissive mode for local
+  // dev. Requests with no Origin header (health checks, curl, SSR) are allowed.
+  const allowAllOrigins = config.webOrigins.includes("*");
   await app.register(cors, {
-    origin: true,
+    origin: allowAllOrigins
+      ? true
+      : (origin, cb) => {
+          if (!origin || config.webOrigins.includes(origin)) {
+            cb(null, true);
+            return;
+          }
+          cb(new Error("Origin not allowed by CORS"), false);
+        },
     methods: ["GET", "POST", "OPTIONS"],
   });
   await app.register(rateLimit, { max: 180, timeWindow: "1 minute" });

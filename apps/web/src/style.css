@@ -200,6 +200,46 @@ button.wide {
   padding: 1.5rem clamp(1.25rem, 4vw, 4rem) 4rem;
   border-top: 1px solid var(--line);
 }
+.compose-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 600;
+  margin-bottom: 1.1rem;
+  cursor: pointer;
+}
+.compose-toggle input {
+  width: auto;
+  margin: 0;
+}
+.plan-panel {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  background: #fffdf7;
+  margin-bottom: 1.25rem;
+}
+.plan-steps {
+  margin: 1rem 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+.plan-steps li {
+  display: grid;
+  gap: 0.2rem;
+}
+.plan-steps strong {
+  font-size: 0.95rem;
+}
+.plan-steps span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.plan-steps code {
+  font: 0.72rem "DM Mono";
+  color: var(--green);
+}
 .provider-strip {
   display: flex;
   align-items: center;

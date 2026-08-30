@@ -1,4 +1,8 @@
-import type { DynamicActionDecision, JsonObject } from "@agent-web/contracts";
+import type {
+  CompositionPlan,
+  DynamicActionDecision,
+  JsonObject,
+} from "@agent-web/contracts";
 import { slugify } from "../utils.js";
 import type { GeneratedUiDraft, ModelRuntime, WorldDraft } from "./types.js";
 
@@ -93,6 +97,37 @@ export class MockModelRuntime implements ModelRuntime {
       ...base,
       title: `${base.title} (repaired)`,
       rationale: `Deterministic repaired fixture after error: ${input.error.slice(0, 200)}`,
+    };
+  }
+
+  async planComposition(
+    input: Parameters<ModelRuntime["planComposition"]>[0],
+  ): Promise<CompositionPlan> {
+    return {
+      summary: `Deterministic plan coordinating ${input.worlds.length} provider world(s) for: ${input.intent}`,
+      steps: input.worlds.map((world, index) => ({
+        worldId: world.id,
+        worldName: world.name,
+        role: `Contribute step ${index + 1} toward the intent`,
+        suggestedAction:
+          "interpret the user intent and propose the next useful outcome",
+        dependsOn: index === 0 ? [] : [index - 1],
+      })),
+    };
+  }
+
+  async generateCompositionUi(
+    input: Parameters<ModelRuntime["generateCompositionUi"]>[0],
+  ): Promise<GeneratedUiDraft> {
+    const base = await this.generateUi({
+      sessionId: input.sessionId,
+      intent: input.intent,
+      worlds: input.worlds,
+    });
+    return {
+      ...base,
+      title: `Composed: ${base.title}`,
+      rationale: `Deterministic composition fixture across ${input.worlds.length} worlds. ${input.plan.summary}`,
     };
   }
 }

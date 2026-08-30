@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import {
   type AgentManifest,
+  type ComposeRequest,
+  type ComposeResponse,
   type CreateWorldRequest,
   type CreateWorldResponse,
   type DynamicActionRequest,
@@ -260,6 +262,64 @@ export class AgentWebService {
       createdAt,
     });
     return { experience, providers: worlds };
+  }
+
+  async compose(input: ComposeRequest): Promise<ComposeResponse> {
+    let worlds: ProviderWorld[] = [];
+    if (input.preferredWorldIds?.length) {
+      const candidates = await Promise.all(
+        input.preferredWorldIds.map((worldId) =>
+          this.store.getWorldById(worldId),
+        ),
+      );
+      worlds = candidates.filter(
+        (world): world is ProviderWorld => world !== null && world.published,
+      );
+    } else {
+      worlds = (await this.search(input.intent, input.maxProviders)).map(
+        ({ world }) => world,
+      );
+    }
+    worlds = worlds.slice(0, input.maxProviders);
+    if (worlds.length === 0) {
+      throw new NotFoundError(
+        "No published provider agents are available for this intent.",
+      );
+    }
+
+    const plan = await this.model.planComposition({
+      intent: input.intent,
+      worlds,
+    });
+    // Keep only worlds the plan actually references, preserving discovery order.
+    const referenced = new Set(plan.steps.map((step) => step.worldId));
+    const planWorlds = worlds.filter((world) => referenced.has(world.id));
+    const effectiveWorlds = planWorlds.length > 0 ? planWorlds : worlds;
+
+    const sessionId = randomUUID();
+    const createdAt = new Date().toISOString();
+    await this.store.createSession({
+      id: sessionId,
+      intent: input.intent,
+      worldIds: effectiveWorlds.map((world) => world.id),
+      createdAt,
+    });
+    const generated = await this.model.generateCompositionUi({
+      sessionId,
+      intent: input.intent,
+      worlds: effectiveWorlds,
+      plan,
+    });
+    const experience = await this.store.saveExperience({
+      id: randomUUID(),
+      sessionId,
+      title: generated.title,
+      html: generated.html,
+      rationale: generated.rationale,
+      worldIds: effectiveWorlds.map((world) => world.id),
+      createdAt,
+    });
+    return { experience, providers: effectiveWorlds, plan };
   }
 
   async repairExperience(

@@ -98,6 +98,18 @@ export class OpenRouterRuntime implements ModelRuntime {
     );
   }
 
+  async repairUi(
+    input: Parameters<ModelRuntime["repairUi"]>[0],
+  ): Promise<GeneratedUiDraft> {
+    return this.callJson(
+      "runtime-ui-repair",
+      GeneratedUiDraftSchema,
+      buildRepairPrompt(input),
+      this.config.maxModelOutputTokens,
+      { maxAttemptsPerModel: 1, timeoutMs: 75_000 },
+    );
+  }
+
   private async callJson<T>(
     purpose: string,
     schema: z.ZodType<T>,
@@ -225,6 +237,23 @@ Session: ${input.sessionId}
 User intent: ${input.intent}
 Available provider worlds:
 ${JSON.stringify(input.worlds)}`;
+}
+
+function buildRepairPrompt(
+  input: Parameters<ModelRuntime["repairUi"]>[0],
+): string {
+  return `A previously generated standalone HTML experience threw an error at runtime in the browser sandbox. Produce a corrected full HTML document that fixes the specific error while still serving the user intent. Keep the same runtime contract: use only window.agent.invoke({ worldId, action, arguments }); no external libraries, network calls, or parent-window access; render untrusted returned text with textContent; wrap handlers in try/catch. Keep it under about 160 lines. Return only JSON with title, html, rationale, where html begins with <!doctype html>.
+
+User intent: ${input.intent}
+Available provider worlds:
+${JSON.stringify(input.worlds)}
+
+Runtime error to fix:
+${input.error}
+${input.context ? `\nAdditional context:\n${input.context}` : ""}
+
+Previous HTML that failed (fix it, do not merely resend it):
+${input.previousHtml.slice(0, 12_000)}`;
 }
 
 function extractContent(payload: OpenRouterResponse): string {

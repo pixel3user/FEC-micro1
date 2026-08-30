@@ -3,6 +3,7 @@ import {
   DynamicActionResponseSchema,
   ExperienceResponseSchema,
   PublishResponseSchema,
+  RepairExperienceResponseSchema,
 } from "@agent-web/contracts";
 import type { FastifyInstance } from "fastify";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -146,5 +147,66 @@ describe("agent-native public network", () => {
         event.eventType.startsWith("agent.decision:"),
       );
     expect(decisionEvents).toHaveLength(1);
+  });
+
+  it("regenerates a corrected experience when the generated UI reports a runtime error", async () => {
+    const created = CreateWorldResponseSchema.parse(
+      (
+        await app.inject({
+          method: "POST",
+          url: "/v1/worlds",
+          payload: {
+            preferredName: "Repairable Provider",
+            message:
+              "We help people compare options for anything they describe and adapt to unusual requests.",
+          },
+        })
+      ).json(),
+    );
+    await app.inject({
+      method: "POST",
+      url: `/v1/worlds/${created.world.id}/publish`,
+      headers: { "x-owner-token": created.ownerToken },
+    });
+
+    const experience = ExperienceResponseSchema.parse(
+      (
+        await app.inject({
+          method: "POST",
+          url: "/v1/experiences",
+          payload: { intent: "Compare a few options interactively" },
+        })
+      ).json(),
+    );
+    const originalId = experience.experience.id;
+
+    const repairResponse = await app.inject({
+      method: "POST",
+      url: "/v1/experiences/repair",
+      payload: {
+        sessionId: experience.experience.sessionId,
+        error: "TypeError: Cannot read properties of undefined (reading 'map')",
+      },
+    });
+    expect(repairResponse.statusCode).toBe(201);
+    const repaired = RepairExperienceResponseSchema.parse(
+      repairResponse.json(),
+    );
+    expect(repaired.repaired).toBe(true);
+    expect(repaired.experience.id).not.toBe(originalId);
+    expect(repaired.experience.sessionId).toBe(experience.experience.sessionId);
+    expect(repaired.experience.title.toLowerCase()).toContain("repaired");
+  });
+
+  it("returns 404 when repairing a session that has no generated experience", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/experiences/repair",
+      payload: {
+        sessionId: "99999999-9999-4999-8999-999999999999",
+        error: "boom",
+      },
+    });
+    expect(response.statusCode).toBe(404);
   });
 });

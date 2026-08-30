@@ -189,6 +189,15 @@ export class MemoryStore implements Store {
     return structuredClone(experience);
   }
 
+  async getLatestExperienceForSession(
+    sessionId: string,
+  ): Promise<GeneratedExperience | null> {
+    const matches = [...this.experiences.values()]
+      .filter((experience) => experience.sessionId === sessionId)
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    return matches[0] ? structuredClone(matches[0]) : null;
+  }
+
   async getIdempotentResponse(
     worldId: string,
     key: string,

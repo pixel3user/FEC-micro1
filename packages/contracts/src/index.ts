@@ -141,6 +141,23 @@ export const ExperienceResponseSchema = z.object({
 });
 export type ExperienceResponse = z.infer<typeof ExperienceResponseSchema>;
 
+export const RepairExperienceRequestSchema = z.object({
+  sessionId: z.uuid(),
+  error: z.string().min(1).max(5_000),
+  context: z.string().max(5_000).optional(),
+});
+export type RepairExperienceRequest = z.infer<
+  typeof RepairExperienceRequestSchema
+>;
+
+export const RepairExperienceResponseSchema = z.object({
+  experience: GeneratedExperienceSchema,
+  repaired: z.boolean(),
+});
+export type RepairExperienceResponse = z.infer<
+  typeof RepairExperienceResponseSchema
+>;
+
 export const ResolveResponseSchema = z.object({
   source: z.enum(["index", "dns"]),
   manifest: AgentManifestSchema.optional(),

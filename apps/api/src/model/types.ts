@@ -43,4 +43,12 @@ export interface ModelRuntime {
     intent: string;
     worlds: ProviderWorld[];
   }): Promise<GeneratedUiDraft>;
+  repairUi(input: {
+    sessionId: string;
+    intent: string;
+    worlds: ProviderWorld[];
+    previousHtml: string;
+    error: string;
+    context?: string;
+  }): Promise<GeneratedUiDraft>;
 }

@@ -66,7 +66,12 @@ export interface Store {
     definition: WorldDefinition,
   ): Promise<ProviderWorld>;
   publishWorld(worldId: string): Promise<ProviderWorld>;
+  setWorldEmbedding(worldId: string, embedding: number[]): Promise<void>;
+  getWorldEmbedding(worldId: string): Promise<number[] | null>;
   searchWorlds(query: string, limit: number): Promise<SearchResult[]>;
+  listPublishedWorldsWithEmbeddings(
+    limit: number,
+  ): Promise<Array<{ world: ProviderWorld; embedding: number[] | null }>>;
   listPublishedWorlds(limit: number): Promise<ProviderWorld[]>;
   appendEvent(input: EventInput): Promise<WorldEvent>;
   listEvents(worldId: string, limit: number): Promise<WorldEvent[]>;

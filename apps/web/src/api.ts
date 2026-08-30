@@ -3,6 +3,8 @@ import type {
   CreateWorldResponse,
   DynamicActionRequest,
   DynamicActionResponse,
+  ComposeRequest,
+  ComposeResponse,
   ExperienceRequest,
   ExperienceResponse,
   ProviderWorld,
@@ -43,6 +45,12 @@ export const api = {
   },
   repairExperience(input: RepairExperienceRequest) {
     return request<RepairExperienceResponse>("/v1/experiences/repair", {
+      method: "POST",
+      body: input,
+    });
+  },
+  compose(input: ComposeRequest) {
+    return request<ComposeResponse>("/v1/compose", {
       method: "POST",
       body: input,
     });

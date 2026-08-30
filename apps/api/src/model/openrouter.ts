@@ -1,6 +1,8 @@
 import {
+  CompositionPlanSchema,
   DynamicActionDecisionSchema,
   JsonObjectSchema,
+  type CompositionPlan,
   type DynamicActionDecision,
 } from "@agent-web/contracts";
 import { z } from "zod";
@@ -107,6 +109,29 @@ export class OpenRouterRuntime implements ModelRuntime {
       buildRepairPrompt(input),
       this.config.maxModelOutputTokens,
       { maxAttemptsPerModel: 1, timeoutMs: 75_000 },
+    );
+  }
+
+  async planComposition(
+    input: Parameters<ModelRuntime["planComposition"]>[0],
+  ): Promise<CompositionPlan> {
+    return this.callJson(
+      "composition-plan",
+      CompositionPlanSchema,
+      `A user has a single intent that may require coordinating multiple independent provider worlds. Produce a plan describing which worlds contribute and in what order. Only reference the provided worlds and use their exact ids and names. Each step names the world's role for this intent and a suggested action verb phrase (invent it; there is no fixed vocabulary). Use dependsOn (array of earlier step indices, zero-based) when a step needs an earlier step's outcome. Return JSON with summary and steps[] where each step has worldId, worldName, role, suggestedAction, dependsOn.\n\nUser intent:\n${input.intent}\n\nAvailable provider worlds:\n${JSON.stringify(input.worlds.map((world) => ({ id: world.id, name: world.name, summary: world.summary, knowledge: world.knowledge })))}`,
+      1_800,
+    );
+  }
+
+  async generateCompositionUi(
+    input: Parameters<ModelRuntime["generateCompositionUi"]>[0],
+  ): Promise<GeneratedUiDraft> {
+    return this.callJson(
+      "composition-ui",
+      GeneratedUiDraftSchema,
+      buildCompositionUiPrompt(input),
+      this.config.maxModelOutputTokens,
+      { maxAttemptsPerModel: 1, timeoutMs: 90_000 },
     );
   }
 
@@ -236,6 +261,24 @@ You choose every action name and argument structure at runtime based on the inte
 Session: ${input.sessionId}
 User intent: ${input.intent}
 Available provider worlds:
+${JSON.stringify(input.worlds)}`;
+}
+
+function buildCompositionUiPrompt(
+  input: Parameters<ModelRuntime["generateCompositionUi"]>[0],
+): string {
+  return `Write a completely new, polished, standalone HTML document that helps the user accomplish an intent that spans MULTIPLE provider worlds. Generate it from scratch now; do not use a template. The interface should let the user progress through the plan and invoke each provider world as needed, showing how the results combine.
+
+The sandbox provides exactly one effect API:
+window.agent.invoke({ worldId: string, action: string, arguments: object }) -> Promise<{ eventId, worldRevision, decision: { decision, result, statePatch, publicSummary } }>
+
+You choose action names and arguments at runtime; there is no predefined vocabulary. Use each world's exact id. Inline all CSS/JS, no external libraries, no network calls or parent access. Render untrusted returned text with textContent, never innerHTML. Wrap handlers in try/catch and show visible errors. Keep it under about 200 lines. Return only JSON with title, html, rationale; html must begin with <!doctype html>.
+
+Session: ${input.sessionId}
+User intent: ${input.intent}
+Composition plan:
+${JSON.stringify(input.plan)}
+Provider worlds:
 ${JSON.stringify(input.worlds)}`;
 }
 

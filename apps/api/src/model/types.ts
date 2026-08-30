@@ -1,4 +1,5 @@
 import type {
+  CompositionPlan,
   DynamicActionDecision,
   GeneratedExperience,
   JsonObject,
@@ -50,5 +51,15 @@ export interface ModelRuntime {
     previousHtml: string;
     error: string;
     context?: string;
+  }): Promise<GeneratedUiDraft>;
+  planComposition(input: {
+    intent: string;
+    worlds: ProviderWorld[];
+  }): Promise<CompositionPlan>;
+  generateCompositionUi(input: {
+    sessionId: string;
+    intent: string;
+    worlds: ProviderWorld[];
+    plan: CompositionPlan;
   }): Promise<GeneratedUiDraft>;
 }

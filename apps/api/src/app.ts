@@ -1,4 +1,5 @@
 import {
+  ComposeRequestSchema,
   ConverseRequestSchema,
   CreateWorldRequestSchema,
   DynamicActionRequestSchema,
@@ -136,6 +137,15 @@ export async function buildApp(
     async (request, reply) => {
       const input = RepairExperienceRequestSchema.parse(request.body);
       return reply.code(201).send(await service.repairExperience(input));
+    },
+  );
+
+  app.post(
+    "/v1/compose",
+    { config: { rateLimit: { max: 20, timeWindow: "1 minute" } } },
+    async (request, reply) => {
+      const input = ComposeRequestSchema.parse(request.body);
+      return reply.code(201).send(await service.compose(input));
     },
   );
 

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   DynamicActionResponseSchema,
+  GeneratedExperienceSchema,
   ProviderWorldSchema,
   WorldEventSchema,
   type DynamicActionResponse,
@@ -149,6 +150,37 @@ export class PostgresStore implements Store {
     return mapWorld(result.rows[0]);
   }
 
+  async setWorldEmbedding(worldId: string, embedding: number[]): Promise<void> {
+    await this.pool.query("UPDATE worlds SET embedding=$2::jsonb WHERE id=$1", [
+      worldId,
+      JSON.stringify(embedding),
+    ]);
+  }
+
+  async getWorldEmbedding(worldId: string): Promise<number[] | null> {
+    const result = await this.pool.query(
+      "SELECT embedding FROM worlds WHERE id=$1",
+      [worldId],
+    );
+    const value = result.rows[0]?.embedding;
+    return Array.isArray(value) ? (value as number[]) : null;
+  }
+
+  async listPublishedWorldsWithEmbeddings(
+    limit: number,
+  ): Promise<Array<{ world: ProviderWorld; embedding: number[] | null }>> {
+    const result = await this.pool.query(
+      "SELECT * FROM worlds WHERE published=true ORDER BY updated_at DESC LIMIT $1",
+      [limit],
+    );
+    return result.rows.map((row) => ({
+      world: mapWorld(row),
+      embedding: Array.isArray(row.embedding)
+        ? (row.embedding as number[])
+        : null,
+    }));
+  }
+
   async searchWorlds(query: string, limit: number): Promise<SearchResult[]> {
     const result = await this.pool.query(
       `WITH input AS (SELECT plainto_tsquery('simple', $1) AS terms)
@@ -248,6 +280,27 @@ export class PostgresStore implements Store {
       ],
     );
     return experience;
+  }
+
+  async getLatestExperienceForSession(
+    sessionId: string,
+  ): Promise<GeneratedExperience | null> {
+    const result = await this.pool.query(
+      `SELECT * FROM generated_experiences
+       WHERE session_id=$1 ORDER BY created_at DESC LIMIT 1`,
+      [sessionId],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return GeneratedExperienceSchema.parse({
+      id: row.id,
+      sessionId: row.session_id,
+      title: row.title,
+      html: row.html,
+      rationale: row.rationale,
+      worldIds: row.world_ids,
+      createdAt: toIso(row.created_at),
+    });
   }
 
   async getIdempotentResponse(

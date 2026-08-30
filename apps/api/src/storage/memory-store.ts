@@ -19,6 +19,7 @@ import type {
 type StoredWorld = {
   world: ProviderWorld;
   ownerTokenHash: string;
+  embedding: number[] | null;
 };
 
 export class MemoryStore implements Store {
@@ -55,6 +56,7 @@ export class MemoryStore implements Store {
     this.worlds.set(record.id, {
       world,
       ownerTokenHash: record.ownerTokenHash,
+      embedding: null,
     });
     return structuredClone(world);
   }
@@ -111,6 +113,30 @@ export class MemoryStore implements Store {
       updatedAt: new Date().toISOString(),
     };
     return structuredClone(stored.world);
+  }
+
+  async setWorldEmbedding(worldId: string, embedding: number[]): Promise<void> {
+    this.requireStoredWorld(worldId).embedding = [...embedding];
+  }
+
+  async getWorldEmbedding(worldId: string): Promise<number[] | null> {
+    const stored = this.worlds.get(worldId);
+    return stored?.embedding ? [...stored.embedding] : null;
+  }
+
+  async listPublishedWorldsWithEmbeddings(
+    limit: number,
+  ): Promise<Array<{ world: ProviderWorld; embedding: number[] | null }>> {
+    return [...this.worlds.values()]
+      .filter(({ world }) => world.published)
+      .sort((left, right) =>
+        right.world.updatedAt.localeCompare(left.world.updatedAt),
+      )
+      .slice(0, limit)
+      .map(({ world, embedding }) => ({
+        world: structuredClone(world),
+        embedding: embedding ? [...embedding] : null,
+      }));
   }
 
   async searchWorlds(query: string, limit: number): Promise<SearchResult[]> {
@@ -187,6 +213,15 @@ export class MemoryStore implements Store {
   ): Promise<GeneratedExperience> {
     this.experiences.set(experience.id, structuredClone(experience));
     return structuredClone(experience);
+  }
+
+  async getLatestExperienceForSession(
+    sessionId: string,
+  ): Promise<GeneratedExperience | null> {
+    const matches = [...this.experiences.values()]
+      .filter((experience) => experience.sessionId === sessionId)
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    return matches[0] ? structuredClone(matches[0]) : null;
   }
 
   async getIdempotentResponse(

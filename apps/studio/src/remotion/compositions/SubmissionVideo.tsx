@@ -10,6 +10,7 @@ import {
   TitleChapter,
 } from "../submission/OpeningProblem";
 import { MarketChapter, UseCaseChapter } from "../submission/UseCaseMarket";
+import { EvidenceChapter } from "../submission/EvidenceChapter";
 import { PersistentHeader, SubmissionCanvas } from "../submission/Primitives";
 import { TemporarySubmissionNarration } from "../submission/TemporaryNarration";
 import { chapters } from "../submission/design";
@@ -44,6 +45,9 @@ export function SubmissionVideo() {
         <FutureChapter />
       </Sequence>
       <Sequence from={chapters[7].from} durationInFrames={chapters[7].duration}>
+        <EvidenceChapter />
+      </Sequence>
+      <Sequence from={chapters[8].from} durationInFrames={chapters[8].duration}>
         <ClosingChapter />
       </Sequence>
       <TemporarySubmissionNarration />

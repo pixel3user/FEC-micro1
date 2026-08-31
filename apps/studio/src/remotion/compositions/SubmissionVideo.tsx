@@ -11,6 +11,7 @@ import {
 } from "../submission/OpeningProblem";
 import { MarketChapter, UseCaseChapter } from "../submission/UseCaseMarket";
 import { PersistentHeader, SubmissionCanvas } from "../submission/Primitives";
+import { TemporarySubmissionNarration } from "../submission/TemporaryNarration";
 import { chapters } from "../submission/design";
 
 /**
@@ -45,6 +46,7 @@ export function SubmissionVideo() {
       <Sequence from={chapters[7].from} durationInFrames={chapters[7].duration}>
         <ClosingChapter />
       </Sequence>
+      <TemporarySubmissionNarration />
       <PersistentHeader />
     </SubmissionCanvas>
   );

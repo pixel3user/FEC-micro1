@@ -1,0 +1,378 @@
+[
+  {
+    "id": "01-problem-user",
+    "chapter": "title",
+    "from": 0,
+    "speechStartSeconds": 0.05,
+    "speechEndSeconds": 6.85,
+    "to": 209
+  },
+  {
+    "id": "02-problem-translation",
+    "chapter": "problem",
+    "from": 209,
+    "speechStartSeconds": 6.962,
+    "speechEndSeconds": 13.652,
+    "to": 410
+  },
+  {
+    "id": "03-problem-provider",
+    "chapter": "problem",
+    "from": 410,
+    "speechStartSeconds": 13.652,
+    "speechEndSeconds": 18.892,
+    "to": 567
+  },
+  {
+    "id": "04-problem-goal",
+    "chapter": "problem",
+    "from": 567,
+    "speechStartSeconds": 18.892,
+    "speechEndSeconds": 23.602,
+    "to": 711
+  },
+  {
+    "id": "05-bottleneck-attention",
+    "chapter": "bottleneck",
+    "from": 711,
+    "speechStartSeconds": 23.714,
+    "speechEndSeconds": 28.474,
+    "to": 854
+  },
+  {
+    "id": "06-bottleneck-interface",
+    "chapter": "bottleneck",
+    "from": 854,
+    "speechStartSeconds": 28.474,
+    "speechEndSeconds": 34.744,
+    "to": 1042
+  },
+  {
+    "id": "06a-bottleneck-example",
+    "chapter": "bottleneck",
+    "from": 1042,
+    "speechStartSeconds": 34.744,
+    "speechEndSeconds": 39.514,
+    "to": 1185
+  },
+  {
+    "id": "07-bottleneck-reasoning",
+    "chapter": "bottleneck",
+    "from": 1185,
+    "speechStartSeconds": 39.514,
+    "speechEndSeconds": 44.114,
+    "to": 1323
+  },
+  {
+    "id": "07a-bottleneck-example",
+    "chapter": "bottleneck",
+    "from": 1323,
+    "speechStartSeconds": 44.114,
+    "speechEndSeconds": 48.884,
+    "to": 1467
+  },
+  {
+    "id": "08-bottleneck-substrate",
+    "chapter": "bottleneck",
+    "from": 1467,
+    "speechStartSeconds": 48.884,
+    "speechEndSeconds": 54.694,
+    "to": 1644
+  },
+  {
+    "id": "09-usecase-request",
+    "chapter": "use-case",
+    "from": 1644,
+    "speechStartSeconds": 54.794,
+    "speechEndSeconds": 59.134,
+    "to": 1774
+  },
+  {
+    "id": "10-usecase-visual",
+    "chapter": "use-case",
+    "from": 1774,
+    "speechStartSeconds": 59.134,
+    "speechEndSeconds": 65.294,
+    "to": 1959
+  },
+  {
+    "id": "11-usecase-discovery",
+    "chapter": "use-case",
+    "from": 1959,
+    "speechStartSeconds": 65.294,
+    "speechEndSeconds": 70.914,
+    "to": 2127
+  },
+  {
+    "id": "12-usecase-compose",
+    "chapter": "use-case",
+    "from": 2127,
+    "speechStartSeconds": 70.914,
+    "speechEndSeconds": 76.584,
+    "to": 2298
+  },
+  {
+    "id": "13-usecase-output",
+    "chapter": "use-case",
+    "from": 2298,
+    "speechStartSeconds": 76.584,
+    "speechEndSeconds": 82.864,
+    "to": 2486
+  },
+  {
+    "id": "14-usecase-novel",
+    "chapter": "use-case",
+    "from": 2486,
+    "speechStartSeconds": 82.864,
+    "speechEndSeconds": 88.934,
+    "to": 2671
+  },
+  {
+    "id": "15-market-websites",
+    "chapter": "market",
+    "from": 2671,
+    "speechStartSeconds": 89.042,
+    "speechEndSeconds": 93.222,
+    "to": 2797
+  },
+  {
+    "id": "16-market-apis",
+    "chapter": "market",
+    "from": 2797,
+    "speechStartSeconds": 93.222,
+    "speechEndSeconds": 98.072,
+    "to": 2942
+  },
+  {
+    "id": "17-market-agents",
+    "chapter": "market",
+    "from": 2942,
+    "speechStartSeconds": 98.072,
+    "speechEndSeconds": 103.742,
+    "to": 3112
+  },
+  {
+    "id": "18-market-added",
+    "chapter": "market",
+    "from": 3112,
+    "speechStartSeconds": 103.742,
+    "speechEndSeconds": 112.082,
+    "to": 3362
+  },
+  {
+    "id": "19-market-bridge",
+    "chapter": "market",
+    "from": 3362,
+    "speechStartSeconds": 112.082,
+    "speechEndSeconds": 117.852,
+    "to": 3536
+  },
+  {
+    "id": "20-market-result",
+    "chapter": "market",
+    "from": 3536,
+    "speechStartSeconds": 117.852,
+    "speechEndSeconds": 122.642,
+    "to": 3683
+  },
+  {
+    "id": "21-agent-intent",
+    "chapter": "agents",
+    "from": 3683,
+    "speechStartSeconds": 122.762,
+    "speechEndSeconds": 127.572,
+    "to": 3827
+  },
+  {
+    "id": "22-agent-discover",
+    "chapter": "agents",
+    "from": 3827,
+    "speechStartSeconds": 127.572,
+    "speechEndSeconds": 134.402,
+    "to": 4032
+  },
+  {
+    "id": "23-agent-actions",
+    "chapter": "agents",
+    "from": 4032,
+    "speechStartSeconds": 134.402,
+    "speechEndSeconds": 139.832,
+    "to": 4195
+  },
+  {
+    "id": "24-agent-verify",
+    "chapter": "agents",
+    "from": 4195,
+    "speechStartSeconds": 139.832,
+    "speechEndSeconds": 147.722,
+    "to": 4432
+  },
+  {
+    "id": "25-agent-direction",
+    "chapter": "agents",
+    "from": 4432,
+    "speechStartSeconds": 147.722,
+    "speechEndSeconds": 156.522,
+    "to": 4699
+  },
+  {
+    "id": "26-future-context",
+    "chapter": "future",
+    "from": 4699,
+    "speechStartSeconds": 156.626,
+    "speechEndSeconds": 161.926,
+    "to": 4858
+  },
+  {
+    "id": "27-future-tools",
+    "chapter": "future",
+    "from": 4858,
+    "speechStartSeconds": 161.926,
+    "speechEndSeconds": 168.366,
+    "to": 5051
+  },
+  {
+    "id": "28-future-memory",
+    "chapter": "future",
+    "from": 5051,
+    "speechStartSeconds": 168.366,
+    "speechEndSeconds": 172.996,
+    "to": 5190
+  },
+  {
+    "id": "29-future-code",
+    "chapter": "future",
+    "from": 5190,
+    "speechStartSeconds": 172.996,
+    "speechEndSeconds": 178.256,
+    "to": 5348
+  },
+  {
+    "id": "30-future-endgoal",
+    "chapter": "future",
+    "from": 5348,
+    "speechStartSeconds": 178.256,
+    "speechEndSeconds": 183.786,
+    "to": 5517
+  },
+  {
+    "id": "31-evidence-baseline",
+    "chapter": "evidence",
+    "from": 5517,
+    "speechStartSeconds": 183.89,
+    "speechEndSeconds": 190.45,
+    "to": 5714
+  },
+  {
+    "id": "32-evidence-outcome",
+    "chapter": "evidence",
+    "from": 5714,
+    "speechStartSeconds": 190.45,
+    "speechEndSeconds": 197.02,
+    "to": 5911
+  },
+  {
+    "id": "33-evidence-discovery",
+    "chapter": "evidence",
+    "from": 5911,
+    "speechStartSeconds": 197.02,
+    "speechEndSeconds": 203.24,
+    "to": 6097
+  },
+  {
+    "id": "34-evidence-score",
+    "chapter": "evidence",
+    "from": 6097,
+    "speechStartSeconds": 203.24,
+    "speechEndSeconds": 209.72,
+    "to": 6292
+  },
+  {
+    "id": "35-evidence-composition",
+    "chapter": "evidence",
+    "from": 6292,
+    "speechStartSeconds": 209.72,
+    "speechEndSeconds": 215.66,
+    "to": 6470
+  },
+  {
+    "id": "36-evidence-steps",
+    "chapter": "evidence",
+    "from": 6470,
+    "speechStartSeconds": 215.66,
+    "speechEndSeconds": 222.31,
+    "to": 6669
+  },
+  {
+    "id": "37-evidence-persistence",
+    "chapter": "evidence",
+    "from": 6669,
+    "speechStartSeconds": 222.31,
+    "speechEndSeconds": 228.72,
+    "to": 6862
+  },
+  {
+    "id": "38-evidence-followup",
+    "chapter": "evidence",
+    "from": 6862,
+    "speechStartSeconds": 228.72,
+    "speechEndSeconds": 235.2,
+    "to": 7056
+  },
+  {
+    "id": "39-evidence-boundary",
+    "chapter": "evidence",
+    "from": 7056,
+    "speechStartSeconds": 235.2,
+    "speechEndSeconds": 241.43,
+    "to": 7246
+  },
+  {
+    "id": "40-changelog-baseline",
+    "chapter": "changelog",
+    "from": 7246,
+    "speechStartSeconds": 241.538,
+    "speechEndSeconds": 248.428,
+    "to": 7453
+  },
+  {
+    "id": "41-changelog-runtime",
+    "chapter": "changelog",
+    "from": 7453,
+    "speechStartSeconds": 248.428,
+    "speechEndSeconds": 255.038,
+    "to": 7651
+  },
+  {
+    "id": "42-changelog-reliability",
+    "chapter": "changelog",
+    "from": 7651,
+    "speechStartSeconds": 255.038,
+    "speechEndSeconds": 261.968,
+    "to": 7859
+  },
+  {
+    "id": "43-changelog-discovery",
+    "chapter": "changelog",
+    "from": 7859,
+    "speechStartSeconds": 261.968,
+    "speechEndSeconds": 268.728,
+    "to": 8062
+  },
+  {
+    "id": "44-changelog-composition",
+    "chapter": "changelog",
+    "from": 8062,
+    "speechStartSeconds": 268.728,
+    "speechEndSeconds": 274.238,
+    "to": 8227
+  },
+  {
+    "id": "46-changelog-direction",
+    "chapter": "changelog",
+    "from": 8227,
+    "speechStartSeconds": 274.238,
+    "speechEndSeconds": 281.868,
+    "to": 8467
+  }
+]

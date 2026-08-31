@@ -1,5 +1,14 @@
-# Temporary SubmissionVideo TTS
+# SubmissionVideo narration
 
-These 47 MP3 clips narrate the on-screen SubmissionVideo captions. This entire directory is temporary and can be deleted together with `src/remotion/submission/TemporaryNarration.tsx` after removing `<TemporarySubmissionNarration />` from `SubmissionVideo.tsx`. If no other static assets use it, the `window.remotion_staticBase` setup in `src/main.tsx` can be removed too.
+`submission-narration.mp3` is the single continuous narration track for `SubmissionVideo`. It replaces 47 independently mounted clips, preventing decoder-boundary clipping and removing fixed caption-slot silence.
 
-Voice: Microsoft Edge `en-US-AvaMultilingualNeural`, generated at an accelerated speaking rate to fit the existing caption windows.
+Voice: Microsoft Edge `en-US-AvaMultilingualNeural` at one consistent `+25%` rate. Sentence punctuation supplies the natural pauses.
+
+Regenerate the audio, source timing, timing report, and `public/submission-video.srt` together:
+
+```bash
+python3 -m pip install -r apps/studio/scripts/requirements-submission-narration.txt
+python3 apps/studio/scripts/generate-submission-narration.py
+```
+
+The canonical narration text is `src/remotion/submission/narration-script.json`; generated frame timing is `src/remotion/submission/narration-timing.json`.

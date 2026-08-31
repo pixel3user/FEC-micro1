@@ -12,6 +12,7 @@ import {
   SectionTitle,
 } from "./Primitives";
 import { submission } from "./design";
+import { chapterDuration, getChapterCaptionCues } from "./narration";
 
 function Constraint({ label, value }: { label: string; value: string }) {
   return (
@@ -392,7 +393,7 @@ export function UseCaseChapter() {
     extrapolateRight: "clamp",
   });
   return (
-    <Scene duration={1320}>
+    <Scene duration={chapterDuration("use-case")}>
       <Reveal delay={2}>
         <SectionTitle
           number="03"
@@ -538,34 +539,7 @@ export function UseCaseChapter() {
         </div>
       </div>
 
-      <CaptionTicker
-        cues={[
-          {
-            from: 0,
-            text: "The user describes a difficult real outcome once and supplies the context the model needs.",
-          },
-          {
-            from: 200,
-            text: "The LLM reasons visually about the apartment, detects accessibility problems, and preserves every personal constraint.",
-          },
-          {
-            from: 430,
-            text: "It discovers ramp rental, moving, equipment, delivery, installation, and building-rule capabilities by meaning.",
-          },
-          {
-            from: 650,
-            text: "Those independent providers are composed into one plan; the agent asks only for decisions that require consent.",
-          },
-          {
-            from: 860,
-            text: "The output is the adapted plan and verified commitments — not six websites, directories, calendars, and checkout forms.",
-          },
-          {
-            from: 1080,
-            text: "No provider could predict this exact workflow. The LLM creates it through reasoning for this person and this moment.",
-          },
-        ]}
-      />
+      <CaptionTicker cues={getChapterCaptionCues("use-case")} />
     </Scene>
   );
 }
@@ -745,7 +719,7 @@ export function MarketChapter() {
     extrapolateRight: "clamp",
   });
   return (
-    <Scene duration={1200}>
+    <Scene duration={chapterDuration("market")}>
       <Reveal delay={2}>
         <SectionTitle
           number="04"
@@ -833,34 +807,7 @@ export function MarketChapter() {
           </div>
         </div>
       </Reveal>
-      <CaptionTicker
-        cues={[
-          {
-            from: 0,
-            text: "Websites and mobile apps encode actions in permanent human-operated interfaces.",
-          },
-          {
-            from: 180,
-            text: "APIs remove the visual layer, but developers still hand-code every connection and workflow.",
-          },
-          {
-            from: 360,
-            text: "Chatbots and browser agents usually sit on top of the same flows; generative UI creates another interface.",
-          },
-          {
-            from: 570,
-            text: "Provider worlds describe capabilities, rules, and state in natural language, so agents can reason over them and invoke any action without hard-coded business logic.",
-          },
-          {
-            from: 790,
-            text: "The prototype uses generated HTML as a bridge. The final direction removes that temporary interface too.",
-          },
-          {
-            from: 1010,
-            text: "The model should reason from request to result instead of generating software that the user must operate.",
-          },
-        ]}
-      />
+      <CaptionTicker cues={getChapterCaptionCues("market")} />
     </Scene>
   );
 }

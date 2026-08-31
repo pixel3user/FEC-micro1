@@ -1,8 +1,14 @@
+import {
+  SUBMISSION_DURATION_IN_FRAMES,
+  chapterDuration,
+  chapterFrom,
+} from "./narration";
+
 export const submission = {
   width: 1920,
   height: 1080,
   fps: 30,
-  durationInFrames: 9420,
+  durationInFrames: SUBMISSION_DURATION_IN_FRAMES,
   color: {
     canvas: "#fdfdfc",
     paper: "#f2f0ee",
@@ -32,16 +38,66 @@ export const submission = {
 } as const;
 
 export const chapters = [
-  { id: "title", label: "Premise", from: 0, duration: 270 },
-  { id: "problem", label: "Who has the problem", from: 270, duration: 840 },
-  { id: "bottleneck", label: "The bottleneck", from: 1110, duration: 840 },
-  { id: "use-case", label: "A real outcome", from: 1950, duration: 1320 },
-  { id: "market", label: "What changes", from: 3270, duration: 1200 },
-  { id: "agents", label: "How agents help", from: 4470, duration: 900 },
-  { id: "future", label: "Context · Tools · Memory", from: 5370, duration: 900 },
-  { id: "evidence", label: "Baseline · Improvement", from: 6270, duration: 1560 },
-  { id: "changelog", label: "Improvement changelog", from: 7830, duration: 1260 },
-  { id: "close", label: "The direction", from: 9090, duration: 330 },
+  {
+    id: "title",
+    label: "Premise",
+    from: chapterFrom("title"),
+    duration: chapterDuration("title"),
+  },
+  {
+    id: "problem",
+    label: "Who has the problem",
+    from: chapterFrom("problem"),
+    duration: chapterDuration("problem"),
+  },
+  {
+    id: "bottleneck",
+    label: "The bottleneck",
+    from: chapterFrom("bottleneck"),
+    duration: chapterDuration("bottleneck"),
+  },
+  {
+    id: "use-case",
+    label: "A real outcome",
+    from: chapterFrom("use-case"),
+    duration: chapterDuration("use-case"),
+  },
+  {
+    id: "market",
+    label: "What changes",
+    from: chapterFrom("market"),
+    duration: chapterDuration("market"),
+  },
+  {
+    id: "agents",
+    label: "How agents help",
+    from: chapterFrom("agents"),
+    duration: chapterDuration("agents"),
+  },
+  {
+    id: "future",
+    label: "Context · Tools · Memory",
+    from: chapterFrom("future"),
+    duration: chapterDuration("future"),
+  },
+  {
+    id: "evidence",
+    label: "Baseline · Improvement",
+    from: chapterFrom("evidence"),
+    duration: chapterDuration("evidence"),
+  },
+  {
+    id: "changelog",
+    label: "Improvement changelog",
+    from: chapterFrom("changelog"),
+    duration: chapterDuration("changelog"),
+  },
+  {
+    id: "close",
+    label: "The direction",
+    from: chapterFrom("close"),
+    duration: chapterDuration("close"),
+  },
 ] as const;
 
 export type SubmissionChapter = (typeof chapters)[number];

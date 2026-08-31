@@ -184,18 +184,29 @@ export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
 ];
 
 const AUDIO_DIRECTORY = "submission-tts-temp";
+const TEMPORARY_NARRATION_END_FRAME = 6270;
 
 export function TemporarySubmissionNarration() {
   return (
     <>
-      {TEMPORARY_NARRATION_CUES.map((cue) => (
-        <Sequence key={cue.id} from={cue.from} name={`Temporary TTS · ${cue.id}`}>
-          <Audio
-            src={staticFile(`${AUDIO_DIRECTORY}/${cue.id}.mp3`)}
-            volume={0.92}
-          />
-        </Sequence>
-      ))}
+      {TEMPORARY_NARRATION_CUES.map((cue, index) => {
+        const nextCue = TEMPORARY_NARRATION_CUES[index + 1];
+        const endFrame = nextCue?.from ?? TEMPORARY_NARRATION_END_FRAME;
+
+        return (
+          <Sequence
+            key={cue.id}
+            from={cue.from}
+            durationInFrames={endFrame - cue.from}
+            name={`Temporary TTS · ${cue.id}`}
+          >
+            <Audio
+              src={staticFile(`${AUDIO_DIRECTORY}/${cue.id}.mp3`)}
+              volume={0.92}
+            />
+          </Sequence>
+        );
+      })}
     </>
   );
 }

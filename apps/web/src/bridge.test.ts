@@ -19,13 +19,4 @@ describe("generated UI bridge", () => {
     );
     expect(injectAgentBridge(once)).toBe(once);
   });
-
-  it("wires runtime error reporting for the repair loop", () => {
-    const result = injectAgentBridge(
-      "<html><head></head><body>x</body></html>",
-    );
-    expect(result).toContain('addEventListener("error"');
-    expect(result).toContain('addEventListener("unhandledrejection"');
-    expect(result).toContain("runtime-error");
-  });
 });

@@ -40,17 +40,6 @@ const bridge = `<meta http-equiv="Content-Security-Policy" content="${policy}">
     if (message.ok) entry.resolve(message.payload);
     else entry.reject(new Error(message.error || "Provider agent failed"));
   });
-  function reportError(kind, detail) {
-    try {
-      window.parent.postMessage({ source: source, type: "runtime-error", kind: kind, detail: String(detail).slice(0, 2000) }, "*");
-    } catch (_) {}
-  }
-  window.addEventListener("error", (event) => {
-    reportError("error", (event && event.message) || "Unknown error");
-  });
-  window.addEventListener("unhandledrejection", (event) => {
-    reportError("unhandledrejection", (event && event.reason && event.reason.message) || event.reason || "Unhandled rejection");
-  });
 })();
 </script>`;
 

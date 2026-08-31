@@ -8,8 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run",
-    "eval": "tsx src/eval/harness.ts"
+    "test": "vitest run"
   },
   "dependencies": {
     "@agent-web/contracts": "workspace:*",

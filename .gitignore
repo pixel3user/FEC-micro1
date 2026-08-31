@@ -11,3 +11,7 @@ playwright-report/
 test-results/
 
 *.tsbuildinfo
+
+# Local submission renders are generated artifacts, never repository sources.
+/submission-video-1080p.mp4
+/submission-video-1080p.zip

@@ -849,7 +849,7 @@ export function MarketChapter() {
           },
           {
             from: 570,
-            text: "We added provider worlds, semantic discovery, arbitrary actions, composition, stored decisions, and adaptive outcomes.",
+            text: "Provider worlds describe capabilities, rules, and state in natural language, so agents can reason over them and invoke any action without hard-coded business logic.",
           },
           {
             from: 790,

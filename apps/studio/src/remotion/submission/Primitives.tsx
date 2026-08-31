@@ -324,13 +324,14 @@ export type CaptionCue = { from: number; to?: number; text: string };
 
 export function CaptionTicker({ cues }: { cues: CaptionCue[] }) {
   const frame = useCurrentFrame();
-  const cue =
-    cues.find(
-      (candidate, index) =>
-        frame >= candidate.from &&
-        frame <
-          (candidate.to ?? cues[index + 1]?.from ?? Number.POSITIVE_INFINITY),
-    ) ?? cues[0] ?? { from: 0, text: "" };
+  const cue = cues.find(
+    (candidate, index) =>
+      frame >= candidate.from &&
+      frame <
+        (candidate.to ?? cues[index + 1]?.from ?? Number.POSITIVE_INFINITY),
+  );
+  if (!cue) return null;
+
   const age = Math.max(0, frame - cue.from);
   const opacity = interpolate(age, [0, 10], [0, 1], {
     extrapolateLeft: "clamp",

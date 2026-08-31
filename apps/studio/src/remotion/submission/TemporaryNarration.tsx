@@ -16,19 +16,20 @@ import { Audio, Sequence, staticFile } from "remotion";
 export type TemporaryNarrationCue = {
   id: string;
   from: number;
+  to?: number;
   text: string;
 };
 
 export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
-  // 01 · Who has the problem? — chapter starts at frame 270.
+  // Premise begins immediately and continues into chapter 01.
   {
     id: "01-problem-user",
-    from: 270,
-    text: "Every person completing a task online must first learn how that website expects the task to be expressed.",
+    from: 0,
+    text: "Every application is built for human interaction, with pages, menus, forms, and controls that become obstacles for agents.",
   },
   {
     id: "02-problem-translation",
-    from: 450,
+    from: 270,
     text: "Pages, menus, filters, accounts, and forms are translations between one human intention and one provider action.",
   },
   {
@@ -50,17 +51,27 @@ export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
   },
   {
     id: "06-bottleneck-interface",
-    from: 1310,
+    from: 1255,
     text: "If an agent understands the same human actions, the interaction no longer needs to be pre-rendered as pages and forms.",
   },
   {
+    id: "06a-bottleneck-example",
+    from: 1435,
+    text: "For example, booking a flight still means navigating filters, seat maps, and checkout.",
+  },
+  {
     id: "07-bottleneck-reasoning",
-    from: 1540,
+    from: 1545,
     text: "The changing workflow can come from LLM reasoning instead of permanently written application logic.",
   },
   {
+    id: "07a-bottleneck-example",
+    from: 1685,
+    text: "For example, reasoning can rebook disrupted travel without a prewritten recovery flow.",
+  },
+  {
     id: "08-bottleneck-substrate",
-    from: 1750,
+    from: 1800,
     text: "A small trusted substrate remains for identity, permission, storage, validation, and transport.",
   },
 
@@ -115,7 +126,7 @@ export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
   {
     id: "18-market-added",
     from: 3840,
-    text: "We added provider worlds, semantic discovery, arbitrary actions, composition, stored decisions, and adaptive outcomes.",
+    text: "Provider worlds describe capabilities, rules, and state in natural language, so agents can reason over them and invoke any action without hard-coded business logic.",
   },
   {
     id: "19-market-bridge",
@@ -147,12 +158,12 @@ export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
   {
     id: "24-agent-verify",
     from: 5000,
-    text: "One LLM reasoning process considers the complete outcome, context, constraints, capabilities, and current state together.",
+    text: "The benefit is adaptability: one reasoning process can combine context, constraints, capabilities, and live state for outcomes no developer preprogrammed.",
   },
   {
     id: "25-agent-direction",
     from: 5170,
-    text: "We are not replacing the trusted execution stack with an LLM. We are replacing more of the application-specific workflow stack with reasoning at runtime.",
+    text: "This removes repeated workflow code and lets providers add capabilities once, while deterministic systems still enforce permission, validation, storage, and execution.",
   },
 
   // 06 · Context, tools, and memory — chapter starts at frame 5370.
@@ -206,7 +217,7 @@ export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
   {
     id: "35-evidence-composition",
     from: 6990,
-    text: "That check means HTTP two-oh-one plus generated HTML over one hundred characters; it does not prove real-world task completion.",
+    text: "This shows the runtime can create task-specific experiences; verified real-world completion remains the next measure.",
   },
   {
     id: "36-evidence-steps",
@@ -253,12 +264,8 @@ export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
   {
     id: "44-changelog-composition",
     from: 8550,
+    to: 8730,
     text: "Composition then combined two separate services into one tested plan and one user-facing experience.",
-  },
-  {
-    id: "45-changelog-outcomes",
-    from: 8730,
-    text: "A contradictory purchase message led us to replace free-text success guessing with typed decisions, state events, and idempotency.",
   },
   {
     id: "46-changelog-direction",
@@ -275,7 +282,7 @@ export function TemporarySubmissionNarration() {
     <>
       {TEMPORARY_NARRATION_CUES.map((cue, index) => {
         const nextCue = TEMPORARY_NARRATION_CUES[index + 1];
-        const endFrame = nextCue?.from ?? TEMPORARY_NARRATION_END_FRAME;
+        const endFrame = cue.to ?? nextCue?.from ?? TEMPORARY_NARRATION_END_FRAME;
 
         return (
           <Sequence

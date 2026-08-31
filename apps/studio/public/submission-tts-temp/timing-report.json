@@ -1,18 +1,18 @@
 [
   {
     "id": "01-problem-user",
-    "from": 270,
-    "windowSeconds": 6.0,
-    "durationSeconds": 4.824,
-    "remainingSeconds": 1.176,
+    "from": 0,
+    "windowSeconds": 9.0,
+    "durationSeconds": 6.72,
+    "remainingSeconds": 2.28,
     "rate": "+28%"
   },
   {
     "id": "02-problem-translation",
-    "from": 450,
-    "windowSeconds": 7.0,
+    "from": 270,
+    "windowSeconds": 13.0,
     "durationSeconds": 6.744,
-    "remainingSeconds": 0.256,
+    "remainingSeconds": 6.256,
     "rate": "+28%"
   },
   {
@@ -34,34 +34,50 @@
   {
     "id": "05-bottleneck-attention",
     "from": 1110,
-    "windowSeconds": 6.667,
+    "windowSeconds": 4.833,
     "durationSeconds": 4.68,
-    "remainingSeconds": 1.987,
+    "remainingSeconds": 0.153,
     "rate": "+28%"
   },
   {
     "id": "06-bottleneck-interface",
-    "from": 1310,
-    "windowSeconds": 7.667,
-    "durationSeconds": 6.24,
-    "remainingSeconds": 1.427,
-    "rate": "+28%"
+    "from": 1255,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.808,
+    "remainingSeconds": 0.192,
+    "rate": "+35%"
+  },
+  {
+    "id": "06a-bottleneck-example",
+    "from": 1435,
+    "windowSeconds": 3.667,
+    "durationSeconds": 3.432,
+    "remainingSeconds": 0.235,
+    "rate": "+70%"
   },
   {
     "id": "07-bottleneck-reasoning",
-    "from": 1540,
-    "windowSeconds": 7.0,
-    "durationSeconds": 4.68,
-    "remainingSeconds": 2.32,
-    "rate": "+28%"
+    "from": 1545,
+    "windowSeconds": 4.667,
+    "durationSeconds": 4.392,
+    "remainingSeconds": 0.275,
+    "rate": "+35%"
+  },
+  {
+    "id": "07a-bottleneck-example",
+    "from": 1685,
+    "windowSeconds": 3.833,
+    "durationSeconds": 3.6,
+    "remainingSeconds": 0.233,
+    "rate": "+70%"
   },
   {
     "id": "08-bottleneck-substrate",
-    "from": 1750,
-    "windowSeconds": 6.667,
-    "durationSeconds": 5.76,
-    "remainingSeconds": 0.907,
-    "rate": "+28%"
+    "from": 1800,
+    "windowSeconds": 5.0,
+    "durationSeconds": 4.584,
+    "remainingSeconds": 0.416,
+    "rate": "+60%"
   },
   {
     "id": "09-usecase-request",
@@ -139,9 +155,9 @@
     "id": "18-market-added",
     "from": 3840,
     "windowSeconds": 7.333,
-    "durationSeconds": 6.792,
-    "remainingSeconds": 0.541,
-    "rate": "+28%"
+    "durationSeconds": 6.312,
+    "remainingSeconds": 1.021,
+    "rate": "+65%"
   },
   {
     "id": "19-market-bridge",
@@ -187,17 +203,17 @@
     "id": "24-agent-verify",
     "from": 5000,
     "windowSeconds": 5.667,
-    "durationSeconds": 5.4,
-    "remainingSeconds": 0.267,
-    "rate": "+48%"
+    "durationSeconds": 5.376,
+    "remainingSeconds": 0.291,
+    "rate": "+85%"
   },
   {
     "id": "25-agent-direction",
     "from": 5170,
     "windowSeconds": 6.667,
-    "durationSeconds": 6.048,
-    "remainingSeconds": 0.619,
-    "rate": "+55%"
+    "durationSeconds": 6.504,
+    "remainingSeconds": 0.163,
+    "rate": "+70%"
   },
   {
     "id": "26-future-context",
@@ -275,9 +291,9 @@
     "id": "35-evidence-composition",
     "from": 6990,
     "windowSeconds": 6.0,
-    "durationSeconds": 5.856,
-    "remainingSeconds": 0.144,
-    "rate": "+48%"
+    "durationSeconds": 5.688,
+    "remainingSeconds": 0.312,
+    "rate": "+35%"
   },
   {
     "id": "36-evidence-steps",
@@ -350,14 +366,6 @@
     "durationSeconds": 5.376,
     "remainingSeconds": 0.624,
     "rate": "+30%"
-  },
-  {
-    "id": "45-changelog-outcomes",
-    "from": 8730,
-    "windowSeconds": 6.0,
-    "durationSeconds": 5.52,
-    "remainingSeconds": 0.48,
-    "rate": "+50%"
   },
   {
     "id": "46-changelog-direction",

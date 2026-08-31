@@ -336,7 +336,7 @@ export function AgentsChapter() {
         <SectionTitle
           number="05"
           title="The application-specific workflow stack becomes runtime reasoning."
-          description="We are not replacing the trusted execution stack with an LLM. We are replacing more of the application-specific workflow stack with reasoning at runtime."
+          description="Adaptable reasoning removes repeated workflow code while the trusted execution stack remains deterministic."
           compact
         />
       </Reveal>
@@ -377,11 +377,11 @@ export function AgentsChapter() {
           },
           {
             from: 530,
-            text: "One LLM reasoning process considers the complete outcome, context, constraints, capabilities, and current state together.",
+            text: "The benefit is adaptability: one reasoning process can combine context, constraints, capabilities, and live state for outcomes no developer preprogrammed.",
           },
           {
             from: 700,
-            text: "We are not replacing the trusted execution stack with an LLM. We are replacing more of the application-specific workflow stack with reasoning at runtime.",
+            text: "This removes repeated workflow code and lets providers add capabilities once, while deterministic systems still enforce permission, validation, storage, and execution.",
           },
         ]}
       />

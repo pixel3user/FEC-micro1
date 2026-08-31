@@ -280,11 +280,8 @@ export function ImprovementChangelog() {
           },
           {
             from: 720,
+            to: 900,
             text: "Composition then combined two separate services into one tested plan and one user-facing experience.",
-          },
-          {
-            from: 900,
-            text: "A contradictory purchase message led us to replace free-text success guessing with typed decisions, state events, and idempotency.",
           },
           {
             from: 1080,

@@ -149,6 +149,14 @@ export function TitleChapter() {
           </Reveal>
         ))}
       </div>
+      <CaptionTicker
+        cues={[
+          {
+            from: 0,
+            text: "Every application is built for human interaction, with pages, menus, forms, and controls that become obstacles for agents.",
+          },
+        ]}
+      />
     </Scene>
   );
 }
@@ -473,10 +481,6 @@ export function ProblemChapter() {
         cues={[
           {
             from: 0,
-            text: "Every person completing a task online must first learn how that website expects the task to be expressed.",
-          },
-          {
-            from: 180,
             text: "Pages, menus, filters, accounts, and forms are translations between one human intention and one provider action.",
           },
           {
@@ -883,15 +887,23 @@ export function BottleneckChapter() {
             text: "Many websites optimize navigation and attention even when the user already knows the result they want.",
           },
           {
-            from: 200,
+            from: 145,
             text: "If an agent understands the same human actions, the interaction no longer needs to be pre-rendered as pages and forms.",
           },
           {
-            from: 430,
+            from: 325,
+            text: "For example, booking a flight still means navigating filters, seat maps, and checkout.",
+          },
+          {
+            from: 435,
             text: "The changing workflow can come from LLM reasoning instead of permanently written application logic.",
           },
           {
-            from: 640,
+            from: 575,
+            text: "For example, reasoning can rebook disrupted travel without a prewritten recovery flow.",
+          },
+          {
+            from: 690,
             text: "A small trusted substrate remains for identity, permission, storage, validation, and transport.",
           },
         ]}

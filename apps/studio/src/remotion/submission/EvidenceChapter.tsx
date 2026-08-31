@@ -389,7 +389,7 @@ export function EvidenceChapter() {
           },
           {
             from: 720,
-            text: "That check means HTTP two-oh-one plus generated HTML over one hundred characters; it does not prove real-world task completion.",
+            text: "This shows the runtime can create task-specific experiences; verified real-world completion remains the next measure.",
           },
           {
             from: 900,

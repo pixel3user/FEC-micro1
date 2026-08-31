@@ -132,27 +132,27 @@ export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
   {
     id: "21-agent-intent",
     from: 4470,
-    text: "The agent understands the desired outcome rather than forcing it into a predefined interface.",
+    text: "Before, every expected outcome needs an application-specific workflow stack built in advance.",
   },
   {
     id: "22-agent-discover",
     from: 4640,
-    text: "It discovers providers by meaning, reads current capabilities and state, and requests only missing context.",
+    text: "That stack includes routes, forms, state, branches, provider adapters, result views, and the libraries connecting them.",
   },
   {
     id: "23-agent-actions",
     from: 4820,
-    text: "It chooses action names and arguments at runtime and composes multiple providers when one is not enough.",
+    text: "Each new journey adds implementation, testing, dependencies, and maintenance before the user can request it.",
   },
   {
     id: "24-agent-verify",
     from: 5000,
-    text: "Authorized actions are performed and verified before the model communicates the final result.",
+    text: "One LLM reasoning process considers the complete outcome, context, constraints, capabilities, and current state together.",
   },
   {
     id: "25-agent-direction",
     from: 5170,
-    text: "The final goal is reasoning that defines the interaction — not another generated website.",
+    text: "We are not replacing the trusted execution stack with an LLM. We are replacing more of the application-specific workflow stack with reasoning at runtime.",
   },
 
   // 06 · Context, tools, and memory — chapter starts at frame 5370.

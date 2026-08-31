@@ -430,19 +430,19 @@ export function AgentsChapter() {
             text: "The agent understands the desired outcome rather than forcing it into a predefined interface.",
           },
           {
-            from: 180,
+            from: 170,
             text: "It discovers providers by meaning, reads current capabilities and state, and requests only missing context.",
           },
           {
-            from: 380,
+            from: 350,
             text: "It chooses action names and arguments at runtime and composes multiple providers when one is not enough.",
           },
           {
-            from: 590,
+            from: 530,
             text: "Authorized actions are performed and verified before the model communicates the final result.",
           },
           {
-            from: 760,
+            from: 700,
             text: "The final goal is reasoning that defines the interaction — not another generated website.",
           },
         ]}
@@ -694,19 +694,19 @@ export function FutureChapter() {
             text: "Context tells the model who the user is, what is happening now, and which constraints must survive the plan.",
           },
           {
-            from: 190,
+            from: 180,
             text: "Tools let the agent discover capabilities, retrieve live information, perform authorized operations, and verify results.",
           },
           {
-            from: 390,
+            from: 360,
             text: "Memory carries useful preferences and previous decisions forward without making the user repeat them.",
           },
           {
-            from: 590,
+            from: 540,
             text: "Together they allow more application-specific frontend and backend workflow code to become runtime reasoning.",
           },
           {
-            from: 760,
+            from: 690,
             text: "The end goal is an internet where people communicate desired outcomes and generative AI returns the result directly.",
           },
         ]}

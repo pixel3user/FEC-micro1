@@ -1,0 +1,242 @@
+[
+  {
+    "id": "01-problem-user",
+    "from": 270,
+    "windowSeconds": 6.0,
+    "durationSeconds": 4.824,
+    "remainingSeconds": 1.176,
+    "rate": "+28%"
+  },
+  {
+    "id": "02-problem-translation",
+    "from": 450,
+    "windowSeconds": 7.0,
+    "durationSeconds": 6.744,
+    "remainingSeconds": 0.256,
+    "rate": "+28%"
+  },
+  {
+    "id": "03-problem-provider",
+    "from": 660,
+    "windowSeconds": 7.333,
+    "durationSeconds": 5.184,
+    "remainingSeconds": 2.149,
+    "rate": "+28%"
+  },
+  {
+    "id": "04-problem-goal",
+    "from": 880,
+    "windowSeconds": 7.667,
+    "durationSeconds": 4.752,
+    "remainingSeconds": 2.915,
+    "rate": "+28%"
+  },
+  {
+    "id": "05-bottleneck-attention",
+    "from": 1110,
+    "windowSeconds": 6.667,
+    "durationSeconds": 4.68,
+    "remainingSeconds": 1.987,
+    "rate": "+28%"
+  },
+  {
+    "id": "06-bottleneck-interface",
+    "from": 1310,
+    "windowSeconds": 7.667,
+    "durationSeconds": 6.24,
+    "remainingSeconds": 1.427,
+    "rate": "+28%"
+  },
+  {
+    "id": "07-bottleneck-reasoning",
+    "from": 1540,
+    "windowSeconds": 7.0,
+    "durationSeconds": 4.68,
+    "remainingSeconds": 2.32,
+    "rate": "+28%"
+  },
+  {
+    "id": "08-bottleneck-substrate",
+    "from": 1750,
+    "windowSeconds": 6.667,
+    "durationSeconds": 5.76,
+    "remainingSeconds": 0.907,
+    "rate": "+28%"
+  },
+  {
+    "id": "09-usecase-request",
+    "from": 1950,
+    "windowSeconds": 6.667,
+    "durationSeconds": 4.344,
+    "remainingSeconds": 2.323,
+    "rate": "+28%"
+  },
+  {
+    "id": "10-usecase-visual",
+    "from": 2150,
+    "windowSeconds": 7.667,
+    "durationSeconds": 6.048,
+    "remainingSeconds": 1.619,
+    "rate": "+28%"
+  },
+  {
+    "id": "11-usecase-discovery",
+    "from": 2380,
+    "windowSeconds": 7.333,
+    "durationSeconds": 5.64,
+    "remainingSeconds": 1.693,
+    "rate": "+28%"
+  },
+  {
+    "id": "12-usecase-compose",
+    "from": 2600,
+    "windowSeconds": 7.0,
+    "durationSeconds": 5.664,
+    "remainingSeconds": 1.336,
+    "rate": "+28%"
+  },
+  {
+    "id": "13-usecase-output",
+    "from": 2810,
+    "windowSeconds": 7.333,
+    "durationSeconds": 6.192,
+    "remainingSeconds": 1.141,
+    "rate": "+28%"
+  },
+  {
+    "id": "14-usecase-novel",
+    "from": 3030,
+    "windowSeconds": 8.0,
+    "durationSeconds": 6.024,
+    "remainingSeconds": 1.976,
+    "rate": "+28%"
+  },
+  {
+    "id": "15-market-websites",
+    "from": 3270,
+    "windowSeconds": 6.0,
+    "durationSeconds": 4.152,
+    "remainingSeconds": 1.848,
+    "rate": "+28%"
+  },
+  {
+    "id": "16-market-apis",
+    "from": 3450,
+    "windowSeconds": 6.0,
+    "durationSeconds": 4.776,
+    "remainingSeconds": 1.224,
+    "rate": "+28%"
+  },
+  {
+    "id": "17-market-agents",
+    "from": 3630,
+    "windowSeconds": 7.0,
+    "durationSeconds": 5.544,
+    "remainingSeconds": 1.456,
+    "rate": "+28%"
+  },
+  {
+    "id": "18-market-added",
+    "from": 3840,
+    "windowSeconds": 7.333,
+    "durationSeconds": 6.792,
+    "remainingSeconds": 0.541,
+    "rate": "+28%"
+  },
+  {
+    "id": "19-market-bridge",
+    "from": 4060,
+    "windowSeconds": 7.333,
+    "durationSeconds": 5.832,
+    "remainingSeconds": 1.501,
+    "rate": "+28%"
+  },
+  {
+    "id": "20-market-result",
+    "from": 4280,
+    "windowSeconds": 6.333,
+    "durationSeconds": 4.752,
+    "remainingSeconds": 1.581,
+    "rate": "+28%"
+  },
+  {
+    "id": "21-agent-intent",
+    "from": 4470,
+    "windowSeconds": 5.667,
+    "durationSeconds": 4.56,
+    "remainingSeconds": 1.107,
+    "rate": "+28%"
+  },
+  {
+    "id": "22-agent-discover",
+    "from": 4640,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.544,
+    "remainingSeconds": 0.456,
+    "rate": "+28%"
+  },
+  {
+    "id": "23-agent-actions",
+    "from": 4820,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.328,
+    "remainingSeconds": 0.672,
+    "rate": "+28%"
+  },
+  {
+    "id": "24-agent-verify",
+    "from": 5000,
+    "windowSeconds": 5.667,
+    "durationSeconds": 4.2,
+    "remainingSeconds": 1.467,
+    "rate": "+28%"
+  },
+  {
+    "id": "25-agent-direction",
+    "from": 5170,
+    "windowSeconds": 6.667,
+    "durationSeconds": 4.608,
+    "remainingSeconds": 2.059,
+    "rate": "+28%"
+  },
+  {
+    "id": "26-future-context",
+    "from": 5370,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.304,
+    "remainingSeconds": 0.696,
+    "rate": "+28%"
+  },
+  {
+    "id": "27-future-tools",
+    "from": 5550,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.616,
+    "remainingSeconds": 0.384,
+    "rate": "+28%"
+  },
+  {
+    "id": "28-future-memory",
+    "from": 5730,
+    "windowSeconds": 6.0,
+    "durationSeconds": 4.608,
+    "remainingSeconds": 1.392,
+    "rate": "+28%"
+  },
+  {
+    "id": "29-future-code",
+    "from": 5910,
+    "windowSeconds": 5.0,
+    "durationSeconds": 4.728,
+    "remainingSeconds": 0.272,
+    "rate": "+42%"
+  },
+  {
+    "id": "30-future-endgoal",
+    "from": 6060,
+    "windowSeconds": 7.0,
+    "durationSeconds": 5.448,
+    "remainingSeconds": 1.552,
+    "rate": "+28%"
+  }
+]

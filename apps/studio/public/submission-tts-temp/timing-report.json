@@ -163,41 +163,41 @@
     "id": "21-agent-intent",
     "from": 4470,
     "windowSeconds": 5.667,
-    "durationSeconds": 4.56,
-    "remainingSeconds": 1.107,
+    "durationSeconds": 4.632,
+    "remainingSeconds": 1.035,
     "rate": "+28%"
   },
   {
     "id": "22-agent-discover",
     "from": 4640,
     "windowSeconds": 6.0,
-    "durationSeconds": 5.544,
-    "remainingSeconds": 0.456,
-    "rate": "+28%"
+    "durationSeconds": 5.784,
+    "remainingSeconds": 0.216,
+    "rate": "+47%"
   },
   {
     "id": "23-agent-actions",
     "from": 4820,
     "windowSeconds": 6.0,
-    "durationSeconds": 5.328,
-    "remainingSeconds": 0.672,
-    "rate": "+28%"
+    "durationSeconds": 5.064,
+    "remainingSeconds": 0.936,
+    "rate": "+35%"
   },
   {
     "id": "24-agent-verify",
     "from": 5000,
     "windowSeconds": 5.667,
-    "durationSeconds": 4.2,
-    "remainingSeconds": 1.467,
-    "rate": "+28%"
+    "durationSeconds": 5.4,
+    "remainingSeconds": 0.267,
+    "rate": "+48%"
   },
   {
     "id": "25-agent-direction",
     "from": 5170,
     "windowSeconds": 6.667,
-    "durationSeconds": 4.608,
-    "remainingSeconds": 2.059,
-    "rate": "+28%"
+    "durationSeconds": 6.048,
+    "remainingSeconds": 0.619,
+    "rate": "+55%"
   },
   {
     "id": "26-future-context",

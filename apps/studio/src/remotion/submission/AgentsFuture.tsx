@@ -13,437 +13,375 @@ import {
 } from "./Primitives";
 import { submission } from "./design";
 
-const capabilities: Array<{
-  n: string;
-  title: string;
-  detail: string;
-  icon: IconName;
-}> = [
-  { n: "01", title: "Understand intent", detail: "Outcome, not keywords", icon: "intent" },
-  { n: "02", title: "Discover by meaning", detail: "Capabilities, not pages", icon: "search" },
-  { n: "03", title: "Read live state", detail: "Current provider reality", icon: "state" },
-  { n: "04", title: "Request context", detail: "Only what is missing", icon: "question" },
-  { n: "05", title: "Choose the action", detail: "Invent name + arguments", icon: "spark" },
-  { n: "06", title: "Compose providers", detail: "One cross-service plan", icon: "compose" },
-  { n: "07", title: "Act with consent", detail: "Authorized operations", icon: "lock" },
-  { n: "08", title: "Generate the result", detail: "Direct useful output", icon: "result" },
-];
+const workflowModules = [
+  ["ROUTES + PAGES", "router · view shell", "A path for every expected journey"],
+  ["COMPONENT LIBRARIES", "forms · controls", "Fields, buttons, dialogs, and states"],
+  ["FORM + UI STATE", "schema · client store", "Validation and transitions"],
+  ["WORKFLOW BRANCHES", "conditions · guards", "Every predicted exception"],
+  ["PROVIDER ADAPTERS", "service clients", "One integration per provider"],
+  ["ORCHESTRATION", "handlers · retries", "Coordinate calls and failures"],
+  ["RESULT VIEWS", "templates · status UI", "Format each possible outcome"],
+  ["TEST + MAINTENANCE", "fixtures · mocks", "Update the entire dependency path"],
+] as const;
 
-function IntentPanel() {
+const reasoningInputs = [
+  "Desired outcome",
+  "User context",
+  "Constraints",
+  "Provider capabilities",
+  "Current state",
+] as const;
+
+function BeforeWorkflowStack({ frame }: { frame: number }) {
   return (
     <EditorialCard
       accent={submission.color.terracotta}
-      style={{ height: 520, padding: 24 }}
+      style={{ height: 492, padding: 22 }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <CardNumber>UNSTRUCTURED REQUEST</CardNumber>
-          <div style={{ marginTop: 6, fontSize: 22, fontWeight: 650 }}>
-            The user describes the outcome
+          <CardNumber>BEFORE · APPLICATION-SPECIFIC WORKFLOW STACK</CardNumber>
+          <div style={{ marginTop: 7, fontSize: 25, fontWeight: 650, letterSpacing: -0.5 }}>
+            Every journey is assembled in advance
           </div>
         </div>
-        <LineIcon name="intent" size={42} color={submission.color.terracotta} />
+        <Pill tone="rust">Many moving parts</Pill>
       </div>
+
       <div
         style={{
-          marginTop: 20,
-          padding: "16px 18px",
+          marginTop: 17,
+          padding: "10px 12px",
+          display: "grid",
+          gridTemplateColumns: "86px 1fr",
+          alignItems: "center",
           background: submission.color.white,
           borderLeft: `3px solid ${submission.color.terracotta}`,
-          fontSize: 20,
-          lineHeight: 1.35,
-          fontWeight: 580,
-          letterSpacing: -0.4,
         }}
       >
-        “Arrange the best outcome for me. Keep my constraints, ask before commitment, and explain what changed.”
-      </div>
-      <div style={{ marginTop: 14, display: "grid", gap: 6 }}>
-        {[
-          ["INPUT", "Natural language"],
-          ["CONTEXT", "Images · history · state"],
-          ["BOUNDARY", "Consent · budget · policy"],
-        ].map(([label, value], index) => (
-          <div
-            key={label}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "116px 1fr",
-              columnGap: 12,
-              alignItems: "center",
-              minHeight: 40,
-              padding: "6px 11px",
-              background: index % 2 ? "rgba(255,255,255,0.4)" : submission.color.white,
-            }}
-          >
-            <Eyebrow
-              color={submission.color.terracotta}
-              style={{ fontSize: 11, letterSpacing: 2.4 }}
-            >
-              {label}
-            </Eyebrow>
-            <div
-              style={{
-                paddingLeft: 4,
-                fontSize: 15,
-                color: submission.color.inkSoft,
-              }}
-            >
-              {value}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          left: 24,
-          right: 24,
-          bottom: 22,
-          paddingTop: 14,
-          borderTop: `1px solid ${submission.color.line}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Eyebrow>User learns no interface</Eyebrow>
-        <Pill tone="rust">One request</Pill>
-      </div>
-    </EditorialCard>
-  );
-}
-
-function CapabilityMatrix({ frame }: { frame: number }) {
-  const active = Math.min(
-    capabilities.length - 1,
-    Math.max(0, Math.floor((frame - 70) / 78)),
-  );
-  return (
-    <EditorialCard
-      accent={submission.color.slate}
-      style={{ height: 520, padding: 20 }}
-    >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div>
-          <CardNumber color={submission.color.slate}>THE AGENT IS THE REASONING LAYER</CardNumber>
-          <div style={{ marginTop: 6, fontSize: 22, fontWeight: 650 }}>
-            The workflow is selected at runtime
-          </div>
+        <Eyebrow color={submission.color.terracotta}>Request</Eyebrow>
+        <div style={{ fontSize: 13, color: submission.color.inkSoft }}>
+          Must fit a route, screen, branch, and integration that already exist.
         </div>
-        <Pill tone="slate">{active + 1}/8</Pill>
       </div>
+
       <div
         style={{
-          marginTop: 19,
+          marginTop: 11,
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 8,
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 7,
         }}
       >
-        {capabilities.map((capability, index) => {
-          const reached = index <= active;
-          const current = index === active;
+        {workflowModules.map(([label, dependency, detail], index) => {
+          const visible = interpolate(frame, [35 + index * 30, 65 + index * 30], [0, 1], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          });
           return (
             <div
-              key={capability.n}
+              key={label}
               style={{
-                minHeight: 91,
-                padding: "11px 13px",
+                minHeight: 58,
+                padding: "7px 10px",
                 display: "grid",
-                gridTemplateColumns: "32px 39px 1fr",
-                alignItems: "center",
+                gridTemplateColumns: "25px 1fr",
                 gap: 9,
-                background: current
-                  ? submission.color.slateSoft
-                  : reached
-                    ? submission.color.white
-                    : "rgba(255,255,255,0.3)",
-                borderTop: `2px solid ${current ? submission.color.slate : reached ? submission.color.success : submission.color.line}`,
-                opacity: reached ? 1 : 0.4,
+                alignItems: "center",
+                background: index % 3 === 0 ? submission.color.terracottaSoft : submission.color.white,
+                borderTop: `2px solid ${index < 4 ? submission.color.terracotta : submission.color.line}`,
+                opacity: visible,
+                transform: `translateY(${(1 - visible) * 5}px)`,
               }}
             >
-              <CardNumber color={current ? submission.color.slate : submission.color.faint}>
-                {capability.n}
-              </CardNumber>
-              <LineIcon
-                name={capability.icon}
-                size={30}
-                color={current ? submission.color.slate : reached ? submission.color.success : submission.color.faint}
-              />
+              <div
+                style={{
+                  width: 23,
+                  height: 23,
+                  display: "grid",
+                  placeItems: "center",
+                  background: submission.color.terracotta,
+                  color: submission.color.white,
+                  fontFamily: submission.font.mono,
+                  fontSize: 9,
+                  fontWeight: 700,
+                }}
+              >
+                {String(index + 1).padStart(2, "0")}
+              </div>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 660, lineHeight: 1.2 }}>
-                  {capability.title}
+                <div style={{ fontFamily: submission.font.mono, fontSize: 10, fontWeight: 700, letterSpacing: 0.6 }}>
+                  {label}
                 </div>
-                <div style={{ marginTop: 4, fontSize: 11, color: submission.color.muted }}>
-                  {capability.detail}
+                <div style={{ marginTop: 3, fontSize: 10, color: submission.color.terracotta }}>
+                  {dependency}
+                </div>
+                <div style={{ marginTop: 2, fontSize: 10, color: submission.color.muted }}>
+                  {detail}
                 </div>
               </div>
             </div>
           );
         })}
       </div>
+
+      <div
+        style={{
+          position: "absolute",
+          left: 22,
+          right: 22,
+          bottom: 18,
+          padding: "10px 12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          background: submission.color.warningSoft,
+          borderLeft: `3px solid ${submission.color.warning}`,
+        }}
+      >
+        <Eyebrow color={submission.color.warning}>Every new outcome adds</Eyebrow>
+        <div style={{ fontFamily: submission.font.mono, fontSize: 11, fontWeight: 700 }}>
+          IMPLEMENTATION · DEPENDENCIES · TESTS · MAINTENANCE
+        </div>
+      </div>
     </EditorialCard>
   );
 }
 
-function GenerativeResult({ frame }: { frame: number }) {
-  const wave = Array.from({ length: 18 }, (_, index) => {
-    const height = 8 + Math.abs(Math.sin(index * 1.9 + frame / 9)) * 28;
-    return height;
-  });
-  const reveal = interpolate(frame, [470, 540], [0, 1], {
+function UnifiedReasoning({ frame }: { frame: number }) {
+  const pulse = interpolate(frame % 90, [0, 45, 90], [0.34, 0.72, 0.34]);
+  const resultReveal = interpolate(frame, [320, 390], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
   return (
     <EditorialCard
       accent={submission.color.navy}
-      style={{ height: 520, padding: 22, background: submission.color.navy, color: submission.color.white }}
+      style={{
+        height: 492,
+        padding: 22,
+        background: submission.color.navy,
+        color: submission.color.white,
+      }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <CardNumber color={submission.color.terracottaSoft}>DIRECT GENERATIVE OUTPUT</CardNumber>
-          <div style={{ marginTop: 6, fontSize: 22, fontWeight: 650 }}>
-            The result, not another app
+          <CardNumber color={submission.color.terracottaSoft}>AFTER · ONE LLM REASONING PROCESS</CardNumber>
+          <div style={{ marginTop: 7, fontSize: 25, fontWeight: 650, letterSpacing: -0.5 }}>
+            The complete situation is processed together
           </div>
         </div>
-        <LineIcon name="result" size={39} color={submission.color.white} />
+        <Pill tone="success">At request time</Pill>
+      </div>
+
+      <div style={{ marginTop: 17 }}>
+        <Eyebrow color="rgba(255,255,255,0.5)">Available to the model at once</Eyebrow>
+        <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
+          {reasoningInputs.map((input, index) => (
+            <div
+              key={input}
+              style={{
+                minHeight: 47,
+                padding: "8px 7px",
+                display: "grid",
+                placeItems: "center",
+                textAlign: "center",
+                background: index % 2 ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.12)",
+                borderTop: `2px solid ${index < 2 ? submission.color.terracotta : submission.color.slate}`,
+                fontFamily: submission.font.mono,
+                fontSize: 9,
+                lineHeight: 1.25,
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.72)",
+              }}
+            >
+              {input}
+            </div>
+          ))}
+        </div>
       </div>
 
       <div
         style={{
-          marginTop: 23,
-          height: 170,
+          marginTop: 15,
+          minHeight: 165,
+          padding: "16px 20px",
           position: "relative",
           overflow: "hidden",
-          background: submission.color.paperStrong,
+          display: "grid",
+          gridTemplateColumns: "72px 1fr",
+          alignItems: "center",
+          gap: 19,
+          background: submission.color.white,
+          color: submission.color.ink,
+          borderLeft: `4px solid ${submission.color.slate}`,
         }}
       >
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background:
-              "linear-gradient(145deg, rgba(183,120,108,0.42), transparent 46%), linear-gradient(330deg, rgba(111,130,148,0.52), transparent 50%)",
+            opacity: pulse,
+            background: `radial-gradient(circle at 72px 96px, ${submission.color.slateSoft}, transparent 44%)`,
           }}
         />
         <div
           style={{
-            position: "absolute",
-            left: 26,
-            top: 24,
-            width: 150,
-            height: 112,
-            border: `2px solid ${submission.color.navy}`,
-            transform: "rotate(-2deg)",
+            width: 70,
+            height: 70,
+            position: "relative",
+            zIndex: 1,
+            display: "grid",
+            placeItems: "center",
+            background: submission.color.navy,
           }}
         >
-          <div style={{ position: "absolute", left: 12, right: 12, top: 18, height: 2, background: submission.color.slate }} />
-          <div style={{ position: "absolute", left: 12, width: 85, top: 37, height: 7, background: submission.color.terracotta }} />
-          <div style={{ position: "absolute", left: 12, right: 28, top: 57, height: 5, background: submission.color.faint }} />
-          <div style={{ position: "absolute", left: 12, right: 18, top: 73, height: 5, background: submission.color.faint }} />
+          <LineIcon name="spark" size={43} color={submission.color.white} />
         </div>
-        <div style={{ position: "absolute", left: 198, top: 24, right: 20 }}>
-          <Eyebrow color={submission.color.navy}>Generated visual explanation</Eyebrow>
-          <div style={{ marginTop: 13, color: submission.color.ink, fontSize: 18, lineHeight: 1.35, fontWeight: 620 }}>
-            A result shaped for this request — text, image, audio, video, or a combination.
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <Eyebrow color={submission.color.slate}>One unified reasoning process</Eyebrow>
+          <div style={{ marginTop: 8, fontSize: 23, fontWeight: 680, letterSpacing: -0.55 }}>
+            No separately implemented flow for this outcome.
           </div>
-          <div style={{ marginTop: 17, display: "flex", alignItems: "center", gap: 3, height: 38 }}>
-            {wave.map((height, index) => (
-              <div
-                key={index}
-                style={{
-                  width: 4,
-                  height,
-                  background: index % 3 === 0 ? submission.color.terracotta : submission.color.slate,
-                }}
-              />
-            ))}
+          <div style={{ marginTop: 8, fontSize: 13, lineHeight: 1.45, color: submission.color.muted }}>
+            The LLM reasons over the request and available world together, then determines the appropriate authorized result.
           </div>
         </div>
       </div>
 
-      <div style={{ marginTop: 14, display: "grid", gap: 8, opacity: reveal }}>
-        {[
-          ["DECISION", "The requested outcome is ready."],
-          ["ACTIONS", "3 authorized operations completed."],
-          ["STATE", "Provider state verified after execution."],
-        ].map(([label, value], index) => (
+      <div
+        style={{
+          marginTop: 10,
+          padding: "9px 13px",
+          display: "grid",
+          gridTemplateColumns: "46px 1fr auto",
+          alignItems: "center",
+          gap: 12,
+          background: submission.color.successSoft,
+          color: submission.color.ink,
+          opacity: resultReveal,
+          transform: `translateY(${(1 - resultReveal) * 8}px)`,
+        }}
+      >
+        <LineIcon name="result" size={35} color={submission.color.success} />
+        <div>
+          <Eyebrow color={submission.color.success}>Direct final result</Eyebrow>
+          <div style={{ marginTop: 4, fontSize: 14, fontWeight: 650 }}>
+            Generated for this request, then verified and persisted.
+          </div>
+        </div>
+        <Pill tone="success">Outcome</Pill>
+      </div>
+
+    </EditorialCard>
+  );
+}
+
+function TrustedExecution() {
+  const systems = ["Identity", "Permission", "Validation", "Storage", "Transport", "Execution"];
+  return (
+    <div
+      style={{
+        marginTop: 14,
+        minHeight: 84,
+        display: "grid",
+        gridTemplateColumns: "260px 1fr",
+        background: submission.color.paperStrong,
+        borderLeft: `4px solid ${submission.color.slate}`,
+      }}
+    >
+      <div
+        style={{
+          padding: "15px 20px",
+          borderRight: `1px solid ${submission.color.line}`,
+        }}
+      >
+        <Eyebrow color={submission.color.slate}>Trusted execution stack remains</Eyebrow>
+        <div style={{ marginTop: 6, fontSize: 14, fontWeight: 640 }}>
+          Deterministic systems still enforce reality
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)" }}>
+        {systems.map((system, index) => (
           <div
-            key={label}
+            key={system}
             style={{
-              display: "grid",
-              gridTemplateColumns: "110px 1fr",
+              display: "flex",
               alignItems: "center",
-              minHeight: 48,
-              padding: "8px 11px",
-              background: index === 0 ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.075)",
-              borderLeft: `2px solid ${index === 0 ? submission.color.terracotta : "rgba(255,255,255,0.2)"}`,
+              justifyContent: "center",
+              gap: 10,
+              borderRight: index < systems.length - 1 ? `1px solid ${submission.color.line}` : "none",
+              fontFamily: submission.font.mono,
+              fontSize: 11,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              color: submission.color.inkSoft,
             }}
           >
-            <Eyebrow
-              color={index === 0 ? submission.color.terracottaSoft : "rgba(255,255,255,0.46)"}
-              style={{ fontSize: 10, letterSpacing: 2 }}
-            >
-              {label}
-            </Eyebrow>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.74)" }}>{value}</div>
+            <span style={{ width: 7, height: 7, background: submission.color.slate }} />
+            {system}
           </div>
         ))}
       </div>
-      <div
-        style={{
-          position: "absolute",
-          bottom: 23,
-          left: 22,
-          right: 22,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingTop: 13,
-          borderTop: "1px solid rgba(255,255,255,0.16)",
-        }}
-      >
-        <Eyebrow color="rgba(255,255,255,0.48)">Permanent interface</Eyebrow>
-        <div style={{ fontFamily: submission.font.mono, color: submission.color.terracottaSoft, fontSize: 16, fontWeight: 700 }}>
-          NONE
-        </div>
-      </div>
-    </EditorialCard>
+    </div>
   );
 }
 
 export function AgentsChapter() {
   const frame = useCurrentFrame();
-  const traceProgress = interpolate(frame, [150, 700], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const trace = ["UNDERSTAND", "DISCOVER", "COMPOSE", "CONFIRM", "INVOKE", "VERIFY", "GENERATE"];
   return (
     <Scene duration={900}>
       <Reveal delay={2}>
         <SectionTitle
           number="05"
-          title="The agent becomes the reasoning layer."
-          description="Actions are not limited to predefined buttons or forms. The model decides what is required from the request, context, capabilities, and consent."
+          title="The application-specific workflow stack becomes runtime reasoning."
+          description="We are not replacing the trusted execution stack with an LLM. We are replacing more of the application-specific workflow stack with reasoning at runtime."
           compact
         />
       </Reveal>
+
       <div
         style={{
-          marginTop: 32,
+          marginTop: 29,
           display: "grid",
-          gridTemplateColumns: "0.78fr 1.4fr 0.92fr",
+          gridTemplateColumns: "1.08fr 0.92fr",
           gap: 15,
         }}
       >
-        <Reveal delay={24}>
-          <IntentPanel />
+        <Reveal delay={22}>
+          <BeforeWorkflowStack frame={frame} />
         </Reveal>
-        <Reveal delay={39}>
-          <CapabilityMatrix frame={frame} />
-        </Reveal>
-        <Reveal delay={54}>
-          <GenerativeResult frame={frame} />
+        <Reveal delay={40}>
+          <UnifiedReasoning frame={frame} />
         </Reveal>
       </div>
 
-      <Reveal delay={95}>
-        <div
-          style={{
-            marginTop: 14,
-            height: 72,
-            display: "grid",
-            gridTemplateColumns: "155px 1fr",
-            background: submission.color.paperStrong,
-            borderTop: `3px solid ${submission.color.slate}`,
-          }}
-        >
-          <div
-            style={{
-              padding: "15px 18px",
-              borderRight: `1px solid ${submission.color.line}`,
-            }}
-          >
-            <Eyebrow color={submission.color.slate}>Chosen trace</Eyebrow>
-            <div style={{ marginTop: 5, fontSize: 13, color: submission.color.muted }}>
-              invented at runtime
-            </div>
-          </div>
-          <div style={{ position: "relative", display: "grid", gridTemplateColumns: "repeat(7, 1fr)", alignItems: "center" }}>
-            <div
-              style={{
-                position: "absolute",
-                left: 42,
-                right: 42,
-                top: 34,
-                height: 2,
-                background: submission.color.line,
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                left: 42,
-                top: 34,
-                height: 2,
-                width: `calc((100% - 84px) * ${traceProgress})`,
-                background: submission.color.slate,
-              }}
-            />
-            {trace.map((label, index) => {
-              const reached = traceProgress >= index / (trace.length - 1);
-              return (
-                <div key={label} style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-                  <div
-                    style={{
-                      width: 12,
-                      height: 12,
-                      margin: "0 auto 8px",
-                      background: reached ? submission.color.slate : submission.color.paperStrong,
-                      border: `2px solid ${reached ? submission.color.slate : submission.color.line}`,
-                    }}
-                  />
-                  <div
-                    style={{
-                      fontFamily: submission.font.mono,
-                      fontSize: 9,
-                      letterSpacing: 0.7,
-                      color: reached ? submission.color.slate : submission.color.faint,
-                    }}
-                  >
-                    {label}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      <Reveal delay={76}>
+        <TrustedExecution />
       </Reveal>
 
       <CaptionTicker
         cues={[
           {
             from: 0,
-            text: "The agent understands the desired outcome rather than forcing it into a predefined interface.",
+            text: "Before, every expected outcome needs an application-specific workflow stack built in advance.",
           },
           {
             from: 170,
-            text: "It discovers providers by meaning, reads current capabilities and state, and requests only missing context.",
+            text: "That stack includes routes, forms, state, branches, provider adapters, result views, and the libraries connecting them.",
           },
           {
             from: 350,
-            text: "It chooses action names and arguments at runtime and composes multiple providers when one is not enough.",
+            text: "Each new journey adds implementation, testing, dependencies, and maintenance before the user can request it.",
           },
           {
             from: 530,
-            text: "Authorized actions are performed and verified before the model communicates the final result.",
+            text: "One LLM reasoning process considers the complete outcome, context, constraints, capabilities, and current state together.",
           },
           {
             from: 700,
-            text: "The final goal is reasoning that defines the interaction — not another generated website.",
+            text: "We are not replacing the trusted execution stack with an LLM. We are replacing more of the application-specific workflow stack with reasoning at runtime.",
           },
         ]}
       />

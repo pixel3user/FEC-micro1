@@ -186,47 +186,47 @@ export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
   {
     id: "31-evidence-baseline",
     from: 6270,
-    text: "Our measured baseline is keyword-ranked provider search plus fixed pages, modeling the basic search-and-click flow people use today.",
+    text: "The primary question is whether one shared reasoning runtime can serve different intents without a separately implemented workflow for each one.",
   },
   {
     id: "32-evidence-outcome",
     from: 6450,
-    text: "The baseline returns links and instructions for the user; our solution reasons toward an authorized, persisted outcome.",
+    text: "The simple baseline assumes a prebuilt route, form, workflow branches, provider handlers, and result view for every journey.",
   },
   {
     id: "33-evidence-discovery",
     from: 6630,
-    text: "For blurry eyesight, lexical search looks for shared words while semantic discovery connects the request to vision assessment.",
+    text: "The agent uses the same configured runtime and generic invocation contract across all four fixed evaluation intents.",
   },
   {
     id: "34-evidence-score",
     from: 6810,
-    text: "Across four fixed cases, relevant top-provider accuracy improved from two out of four to four out of four.",
+    text: "In the documented live run, generated experiences were returned for zero of four baseline cases and four of four agent cases.",
   },
   {
     id: "35-evidence-composition",
     from: 6990,
-    text: "For a birthday venue and food, the baseline finds two providers separately; our solution combines both into one plan.",
+    text: "That check means HTTP two-oh-one plus generated HTML over one hundred characters; it does not prove real-world task completion.",
   },
   {
     id: "36-evidence-steps",
     from: 7170,
-    text: "Modeled navigation falls from six steps to two for composition, but these are assumptions, not observed user telemetry.",
+    text: "Semantic discovery is supporting evidence: relevant top-provider ranking improved from two of four to four of four fixed cases.",
   },
   {
     id: "37-evidence-persistence",
     from: 7350,
-    text: "A persistent result means the first authorized action changes durable provider state and records a decision event.",
+    text: "Average human actions fall from three point seven five to two, but those values are modeled assumptions, not observed telemetry.",
   },
   {
     id: "38-evidence-followup",
     from: 7510,
-    text: "A later request receives current state and recent events, so it can explain what is already arranged without starting over.",
+    text: "Integration tests separately verify a two-provider plan, a state update with a decision event, and duplicate-action suppression.",
   },
   {
     id: "39-evidence-boundary",
     from: 7670,
-    text: "State updates and idempotency are tested; a distinct semantic follow-up is supported, but not yet measured.",
+    text: "The evidence supports replacing more task-specific workflow implementation with reasoning, while trusted execution systems remain.",
   },
 ];
 

@@ -243,72 +243,72 @@
     "id": "31-evidence-baseline",
     "from": 6270,
     "windowSeconds": 6.0,
-    "durationSeconds": 5.832,
-    "remainingSeconds": 0.168,
-    "rate": "+33%"
+    "durationSeconds": 5.688,
+    "remainingSeconds": 0.312,
+    "rate": "+45%"
   },
   {
     "id": "32-evidence-outcome",
     "from": 6450,
     "windowSeconds": 6.0,
-    "durationSeconds": 5.832,
-    "remainingSeconds": 0.168,
-    "rate": "+28%"
+    "durationSeconds": 5.76,
+    "remainingSeconds": 0.24,
+    "rate": "+42%"
   },
   {
     "id": "33-evidence-discovery",
     "from": 6630,
     "windowSeconds": 6.0,
-    "durationSeconds": 5.688,
-    "remainingSeconds": 0.312,
-    "rate": "+40%"
+    "durationSeconds": 5.808,
+    "remainingSeconds": 0.192,
+    "rate": "+35%"
   },
   {
     "id": "34-evidence-score",
     "from": 6810,
     "windowSeconds": 6.0,
-    "durationSeconds": 5.256,
-    "remainingSeconds": 0.744,
-    "rate": "+28%"
+    "durationSeconds": 5.736,
+    "remainingSeconds": 0.264,
+    "rate": "+45%"
   },
   {
     "id": "35-evidence-composition",
     "from": 6990,
     "windowSeconds": 6.0,
-    "durationSeconds": 5.688,
-    "remainingSeconds": 0.312,
-    "rate": "+41%"
+    "durationSeconds": 5.856,
+    "remainingSeconds": 0.144,
+    "rate": "+48%"
   },
   {
     "id": "36-evidence-steps",
     "from": 7170,
     "windowSeconds": 6.0,
-    "durationSeconds": 5.664,
-    "remainingSeconds": 0.336,
-    "rate": "+36%"
+    "durationSeconds": 5.616,
+    "remainingSeconds": 0.384,
+    "rate": "+45%"
   },
   {
     "id": "37-evidence-persistence",
     "from": 7350,
     "windowSeconds": 5.333,
-    "durationSeconds": 5.064,
-    "remainingSeconds": 0.269,
-    "rate": "+35%"
+    "durationSeconds": 4.944,
+    "remainingSeconds": 0.389,
+    "rate": "+60%"
   },
   {
     "id": "38-evidence-followup",
     "from": 7510,
     "windowSeconds": 5.333,
-    "durationSeconds": 5.088,
-    "remainingSeconds": 0.245,
-    "rate": "+47%"
+    "durationSeconds": 5.28,
+    "remainingSeconds": 0.053,
+    "rate": "+55%"
   },
   {
     "id": "39-evidence-boundary",
     "from": 7670,
     "windowSeconds": 5.333,
-    "durationSeconds": 5.112,
-    "remainingSeconds": 0.221,
-    "rate": "+44%"
+    "durationSeconds": 5.256,
+    "remainingSeconds": 0.077,
+    "rate": "+48%"
   }
 ]

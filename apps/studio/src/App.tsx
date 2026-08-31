@@ -144,13 +144,12 @@ export function App() {
               compositionHeight={videoConfig.height}
               style={{ width: "100%" }}
               controls
-              autoPlay
               loop
             />
           </div>
           <p style={{ color: theme.color.muted, margin: 0, fontSize: 15 }}>
-            Captions are on-screen; a voice track can be layered later without
-            changing the compositions.
+            Temporary caption narration is enabled — press Play to hear it. The
+            voice layer can be removed without changing the composition.
           </p>
         </section>
       </main>

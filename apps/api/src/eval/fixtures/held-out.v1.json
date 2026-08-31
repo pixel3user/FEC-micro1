@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "split": "held-out",
+  "cases": [
+    {
+      "id": "held-out-blurry-vision-exam",
+      "mode": "single",
+      "intent": "my eyesight is blurry and I want it checked",
+      "relevantProviderIds": ["clearview-eye-clinic"],
+      "invocation": {
+        "providerId": "clearview-eye-clinic",
+        "action": "request an eye examination appointment",
+        "arguments": {
+          "symptom": "blurry vision",
+          "wearsContacts": false
+        }
+      },
+      "expectedHtmlMarkers": ["<!doctype html>", "window.agent.invoke"]
+    },
+    {
+      "id": "held-out-workshop-material-delivery",
+      "mode": "compose",
+      "intent": "print training packets and deliver them to my workshop venue",
+      "relevantProviderIds": ["harbor-printworks", "swift-courier"],
+      "invocation": {
+        "providerId": "harbor-printworks",
+        "action": "prepare workshop packets for courier pickup",
+        "arguments": {
+          "packetCount": 40,
+          "pagesPerPacket": 12,
+          "deliveryRequired": true
+        }
+      },
+      "expectedHtmlMarkers": ["<!doctype html>", "window.agent.invoke"]
+    },
+    {
+      "id": "held-out-custom-bike-request",
+      "mode": "single",
+      "intent": "I need help finding and installing an unusual bicycle part",
+      "relevantProviderIds": ["cog-and-chain"],
+      "invocation": {
+        "providerId": "cog-and-chain",
+        "action": "assess a custom bicycle part request",
+        "arguments": {
+          "partDescription": "nonstandard rear rack mount"
+        }
+      }
+    }
+  ]
+}

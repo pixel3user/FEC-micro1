@@ -1,255 +1,705 @@
+import { isDeepStrictEqual } from "node:util";
+import {
+  ComposeRequestSchema,
+  ComposeResponseSchema,
+  CreateWorldRequestSchema,
+  CreateWorldResponseSchema,
+  DynamicActionRequestSchema,
+  DynamicActionResponseSchema,
+  ExperienceRequestSchema,
+  ExperienceResponseSchema,
+  ProviderWorldSchema,
+  PublishResponseSchema,
+  SearchRequestSchema,
+  SearchResultSchema,
+  WorldEventSchema,
+} from "@agent-web/contracts";
 import type { FastifyInstance } from "fastify";
+import { z } from "zod";
 import { buildApp } from "../app.js";
 import { loadConfig } from "../config.js";
 import { HashingEmbedder } from "../model/embeddings.js";
 import { MockModelRuntime } from "../model/mock.js";
 import { getUsageTotals } from "../model/usage.js";
 import { MemoryStore } from "../storage/memory-store.js";
+import { mergeJsonObjects } from "../utils.js";
+import { observeHtmlStructure } from "./html-structure.js";
+import { loadEvaluationFixtures } from "./load-fixtures.js";
+import { computeEvaluationMetrics } from "./metrics.js";
+import {
+  EVALUATION_REPORT_VERSION,
+  EvalReportSchema,
+  EvaluationCaseObservationSchema,
+  EvaluationRuntimeIdentitySchema,
+  type EvalReport,
+  type EvaluationCaseObservation,
+  type EvaluationRuntimeIdentity,
+} from "./report-schema.js";
+import {
+  EvaluationFixturesSchema,
+  FixtureSplitSchema,
+  type EvaluationCase,
+  type EvaluationFixtures,
+} from "./schemas.js";
 
-/**
- * Evaluation harness comparing a fixed non-agent baseline against the
- * agent-native path on the same seeded providers and intents.
- *
- * Baseline model: a user of a conventional multi-site web must (1) pick a
- * provider from a keyword listing and (2) land on that provider's own fixed
- * page. It cannot compose across providers and produces no task-specific UI.
- * We approximate the baseline's discovery with naive substring keyword search
- * and count the fixed navigation steps a person would take.
- *
- * Agent path: intent -> blended discovery -> one generated interface (and,
- * for multi-need intents, a single composed interface across providers).
- *
- * Metrics are structural and deterministic in mock mode (no spend). Pass
- * MODEL_MODE=live (with a key) to measure real generation success and cost.
- */
+export type { EvalReport, EvaluationRuntimeIdentity };
 
-type Provider = { name: string; message: string };
-type EvalCase = {
-  intent: string;
-  relevantProviderNames: string[];
-  multiProvider: boolean;
+const SearchResponseSchema = z
+  .object({ results: z.array(SearchResultSchema) })
+  .strict();
+const EventsResponseSchema = z
+  .object({
+    worldRevision: z.number().int().nonnegative(),
+    events: z.array(WorldEventSchema),
+  })
+  .strict();
+const RetrievalCutoffSchema = z.number().int().min(1).max(8);
+const DatasetIdSchema = z.string().min(1).max(200);
+
+export type RunEvalOptions = {
+  runtime: EvaluationRuntimeIdentity;
+  split?: "development" | "held-out";
+  retrievalCutoff?: number;
+  datasetId?: string;
+  fixtures?: EvaluationFixtures;
+  fixtureDirectory?: string | URL;
+  now?: () => Date;
 };
 
-const PROVIDERS: Provider[] = [
-  {
-    name: "Cog and Chain Co-op",
-    message:
-      "A bicycle repair co-op servicing commuter bikes, stocking common parts, and handling unusual custom requests.",
-  },
-  {
-    name: "Northstar Events",
-    message:
-      "We help groups plan local events, find venues, and coordinate schedules for gatherings.",
-  },
-  {
-    name: "Feast Collective",
-    message:
-      "We provide catering and food service for events, parties, and corporate gatherings.",
-  },
-  {
-    name: "Clearview Eye Clinic",
-    message:
-      "A clinic offering eye examinations, vision tests, and prescriptions for glasses and contacts.",
-  },
-  {
-    name: "Bluenote Studio",
-    message:
-      "A music school offering saxophone, piano, and guitar lessons for adults and teenagers.",
-  },
-];
+type SeededProvider = {
+  fixtureProviderId: string;
+  worldId: string;
+  searchableText: string;
+};
 
-const CASES: EvalCase[] = [
-  {
-    intent: "my commuter bicycle needs a tune-up",
-    relevantProviderNames: ["Cog and Chain Co-op"],
-    multiProvider: false,
-  },
-  {
-    intent: "my eyesight is blurry and I want it checked",
-    relevantProviderNames: ["Clearview Eye Clinic"],
-    multiProvider: false,
-  },
-  {
-    intent: "plan a birthday gathering with a venue and food",
-    relevantProviderNames: ["Northstar Events", "Feast Collective"],
-    multiProvider: true,
-  },
-  {
-    intent: "I want to learn to play the saxophone",
-    relevantProviderNames: ["Bluenote Studio"],
-    multiProvider: false,
-  },
-];
+type EvaluationInjectRequest = {
+  method: "GET" | "POST";
+  url: string;
+  payload?: object;
+  headers?: Record<string, string>;
+};
 
-// Baseline: naive keyword overlap between the raw intent and provider text.
-function baselineDiscover(
+type UsageSnapshot = ReturnType<typeof getUsageTotals>;
+
+type AppEvaluationState = {
+  fixtureFingerprint: string;
+  seeded: Promise<SeededProvider[]>;
+  runNumber: number;
+};
+
+const evaluationStateByApp = new WeakMap<FastifyInstance, AppEvaluationState>();
+const evaluationQueueByApp = new WeakMap<FastifyInstance, Promise<void>>();
+
+export async function runEval(
+  app: FastifyInstance,
+  options: RunEvalOptions,
+): Promise<EvalReport> {
+  const previous = evaluationQueueByApp.get(app) ?? Promise.resolve();
+  let release = (): void => undefined;
+  const current = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  evaluationQueueByApp.set(
+    app,
+    previous.then(() => current),
+  );
+  await previous;
+  try {
+    return await runEvalOnce(app, options);
+  } finally {
+    release();
+  }
+}
+
+async function runEvalOnce(
+  app: FastifyInstance,
+  options: RunEvalOptions,
+): Promise<EvalReport> {
+  const runtime = EvaluationRuntimeIdentitySchema.parse(options.runtime);
+  const split = FixtureSplitSchema.parse(options.split ?? "held-out");
+  const retrievalCutoff = RetrievalCutoffSchema.parse(
+    options.retrievalCutoff ?? 5,
+  );
+  const datasetId = DatasetIdSchema.parse(
+    options.datasetId ?? "agent-web-evaluation-fixtures",
+  );
+  const fixtures = EvaluationFixturesSchema.parse(
+    options.fixtures ??
+      (await loadEvaluationFixtures(options.fixtureDirectory)),
+  );
+  const now = options.now ?? (() => new Date());
+  const startedAt = now().toISOString();
+  const usageBefore = getUsageTotals();
+
+  const { seeded, runNumber } = await providersForEvaluation(app, fixtures);
+  const runId = `eval-${split}-${runNumber}`;
+  const fixtureIdByWorldId = new Map(
+    seeded.map(({ fixtureProviderId, worldId }) => [
+      worldId,
+      fixtureProviderId,
+    ]),
+  );
+  const seededByFixtureId = new Map(
+    seeded.map((provider) => [provider.fixtureProviderId, provider]),
+  );
+  const cases =
+    split === "development" ? fixtures.development : fixtures.heldOut;
+  const observations: EvaluationCaseObservation[] = [];
+
+  for (const testCase of cases) {
+    observations.push(
+      await observeCase({
+        app,
+        runId,
+        testCase,
+        retrievalCutoff,
+        seeded,
+        fixtureIdByWorldId,
+        seededByFixtureId,
+      }),
+    );
+  }
+
+  const completedAt = now().toISOString();
+  return EvalReportSchema.parse({
+    reportVersion: EVALUATION_REPORT_VERSION,
+    runId,
+    dataset: {
+      id: datasetId,
+      version: fixtures.version,
+      split,
+    },
+    runtime,
+    startedAt,
+    completedAt,
+    retrievalCutoff,
+    providerMappings: seeded.map(({ fixtureProviderId, worldId }) => ({
+      fixtureProviderId,
+      worldId,
+    })),
+    cases: observations,
+    metrics: computeEvaluationMetrics(observations, retrievalCutoff),
+    usage: usageDelta(usageBefore, getUsageTotals()),
+  });
+}
+
+async function providersForEvaluation(
+  app: FastifyInstance,
+  fixtures: EvaluationFixtures,
+): Promise<{ seeded: SeededProvider[]; runNumber: number }> {
+  const fixtureFingerprint = JSON.stringify(fixtures.providers);
+  let state = evaluationStateByApp.get(app);
+  if (state === undefined) {
+    state = {
+      fixtureFingerprint,
+      seeded: seedProviders(app, fixtures),
+      runNumber: 0,
+    };
+    evaluationStateByApp.set(app, state);
+  } else if (state.fixtureFingerprint !== fixtureFingerprint) {
+    throw new Error(
+      "A Fastify app cannot be reused with a different evaluation provider fixture set.",
+    );
+  }
+  const seeded = await state.seeded;
+  state.runNumber += 1;
+  return { seeded, runNumber: state.runNumber };
+}
+
+async function seedProviders(
+  app: FastifyInstance,
+  fixtures: EvaluationFixtures,
+): Promise<SeededProvider[]> {
+  const seeded: SeededProvider[] = [];
+  for (const provider of fixtures.providers) {
+    const createInput = CreateWorldRequestSchema.parse({
+      preferredName: provider.name,
+      message: provider.message,
+    });
+    const created = await injectParsed(
+      app,
+      {
+        method: "POST",
+        url: "/v1/worlds",
+        payload: createInput,
+      },
+      201,
+      CreateWorldResponseSchema,
+      `create fixture provider '${provider.id}'`,
+    );
+    const published = await injectParsed(
+      app,
+      {
+        method: "POST",
+        url: `/v1/worlds/${created.world.id}/publish`,
+        headers: { "x-owner-token": created.ownerToken },
+      },
+      200,
+      PublishResponseSchema,
+      `publish fixture provider '${provider.id}'`,
+    );
+    if (published.world.id !== created.world.id) {
+      throw new Error(
+        `Published world ID did not match created world for fixture provider '${provider.id}'.`,
+      );
+    }
+    seeded.push({
+      fixtureProviderId: provider.id,
+      worldId: published.world.id,
+      searchableText: `${provider.name} ${published.world.searchableText}`,
+    });
+  }
+  return seeded;
+}
+
+async function observeCase(input: {
+  app: FastifyInstance;
+  runId: string;
+  testCase: EvaluationCase;
+  retrievalCutoff: number;
+  seeded: readonly SeededProvider[];
+  fixtureIdByWorldId: ReadonlyMap<string, string>;
+  seededByFixtureId: ReadonlyMap<string, SeededProvider>;
+}): Promise<EvaluationCaseObservation> {
+  const {
+    app,
+    runId,
+    testCase,
+    retrievalCutoff,
+    seeded,
+    fixtureIdByWorldId,
+    seededByFixtureId,
+  } = input;
+  const baselineRanked = baselineDiscover(
+    testCase.intent,
+    seeded,
+    retrievalCutoff,
+  );
+  const searchInput = SearchRequestSchema.parse({
+    query: testCase.intent,
+    // Retrieve the full bounded pool, then apply the declared cutoff after
+    // restricting observations to this run's fixture-to-world mapping.
+    limit: 20,
+  });
+  const search = await injectParsed(
+    app,
+    {
+      method: "GET",
+      url: `/v1/index/search?query=${encodeURIComponent(searchInput.query)}&limit=${searchInput.limit}`,
+    },
+    200,
+    SearchResponseSchema,
+    `search for case '${testCase.id}'`,
+  );
+  const agentRanked = search.results
+    .filter(({ world }) => fixtureIdByWorldId.has(world.id))
+    .slice(0, retrievalCutoff)
+    .map(({ world, score }, index) => ({
+      rank: index + 1,
+      fixtureProviderId: fixtureIdByWorldId.get(world.id) ?? null,
+      worldId: world.id,
+      score,
+    }));
+  const preferredWorldIds = agentRanked.flatMap(({ worldId }) =>
+    worldId === null ? [] : [worldId],
+  );
+  if (preferredWorldIds.length === 0) {
+    throw new Error(
+      `Agent discovery returned no run-scoped providers for case '${testCase.id}'.`,
+    );
+  }
+
+  const generation =
+    testCase.mode === "compose"
+      ? await generateComposition(
+          app,
+          testCase,
+          retrievalCutoff,
+          preferredWorldIds,
+          fixtureIdByWorldId,
+        )
+      : await generateSingle(
+          app,
+          testCase,
+          preferredWorldIds,
+          fixtureIdByWorldId,
+        );
+
+  const invocationProvider = seededByFixtureId.get(
+    testCase.invocation.providerId,
+  );
+  if (!invocationProvider) {
+    throw new Error(
+      `No generated world mapping for fixture provider '${testCase.invocation.providerId}'.`,
+    );
+  }
+  const worldUrl = `/v1/worlds/${invocationProvider.worldId}`;
+  const eventsUrl = `${worldUrl}/events?limit=200`;
+  const worldBefore = await injectParsed(
+    app,
+    { method: "GET", url: worldUrl },
+    200,
+    ProviderWorldSchema,
+    `read pre-invocation world for case '${testCase.id}'`,
+  );
+  const eventsBefore = await injectParsed(
+    app,
+    { method: "GET", url: eventsUrl },
+    200,
+    EventsResponseSchema,
+    `read pre-invocation events for case '${testCase.id}'`,
+  );
+  const idempotencyKey = `${runId}:${testCase.id}`;
+  const invocationInput = DynamicActionRequestSchema.parse({
+    sessionId: generation.sessionId,
+    action: testCase.invocation.action,
+    arguments: testCase.invocation.arguments,
+    idempotencyKey,
+  });
+  const invocationUrl = `${worldUrl}/invoke`;
+  const invoked = await injectParsed(
+    app,
+    { method: "POST", url: invocationUrl, payload: invocationInput },
+    200,
+    DynamicActionResponseSchema,
+    `invoke case '${testCase.id}'`,
+  );
+  const worldAfter = await injectParsed(
+    app,
+    { method: "GET", url: worldUrl },
+    200,
+    ProviderWorldSchema,
+    `read persisted world for case '${testCase.id}'`,
+  );
+  const eventsAfter = await injectParsed(
+    app,
+    { method: "GET", url: eventsUrl },
+    200,
+    EventsResponseSchema,
+    `read persisted events for case '${testCase.id}'`,
+  );
+  const retried = await injectParsed(
+    app,
+    { method: "POST", url: invocationUrl, payload: invocationInput },
+    200,
+    DynamicActionResponseSchema,
+    `retry invocation for case '${testCase.id}'`,
+  );
+  const worldAfterRetry = await injectParsed(
+    app,
+    { method: "GET", url: worldUrl },
+    200,
+    ProviderWorldSchema,
+    `read world after retry for case '${testCase.id}'`,
+  );
+  const eventsAfterRetry = await injectParsed(
+    app,
+    { method: "GET", url: eventsUrl },
+    200,
+    EventsResponseSchema,
+    `read events after retry for case '${testCase.id}'`,
+  );
+  const matchingEvents = eventsAfter.events.filter(
+    (event) =>
+      event.id === invoked.eventId &&
+      event.worldId === invocationProvider.worldId &&
+      event.sessionId === generation.sessionId &&
+      event.eventType === `agent.decision:${testCase.invocation.action}` &&
+      event.actor === "agent",
+  );
+  const eventPayloadPersisted =
+    matchingEvents.length === 1 &&
+    isDeepStrictEqual(
+      matchingEvents[0]?.payload.action,
+      invocationInput.action,
+    ) &&
+    isDeepStrictEqual(
+      matchingEvents[0]?.payload.arguments,
+      invocationInput.arguments,
+    ) &&
+    isDeepStrictEqual(matchingEvents[0]?.payload.decision, invoked.decision);
+  const providerInGeneratedExperience = generation.providers.some(
+    ({ fixtureProviderId }) =>
+      fixtureProviderId === testCase.invocation.providerId,
+  );
+  const statePatchPersisted = isDeepStrictEqual(
+    worldAfter.state,
+    mergeJsonObjects(worldBefore.state, invoked.decision.statePatch),
+  );
+
+  return EvaluationCaseObservationSchema.parse({
+    caseId: testCase.id,
+    mode: testCase.mode,
+    intent: testCase.intent,
+    relevantProviderIds: testCase.relevantProviderIds,
+    discovery: {
+      retrievalCutoff,
+      baseline: {
+        rankedProviders: baselineRanked,
+        topHit: isTopHit(baselineRanked, testCase.relevantProviderIds),
+        relevantProviderCoverage: hasRelevantCoverage(
+          baselineRanked,
+          testCase.relevantProviderIds,
+        ),
+      },
+      agent: {
+        rankedProviders: agentRanked,
+        topHit: isTopHit(agentRanked, testCase.relevantProviderIds),
+        relevantProviderCoverage: hasRelevantCoverage(
+          agentRanked,
+          testCase.relevantProviderIds,
+        ),
+      },
+    },
+    generation: {
+      kind: testCase.mode,
+      statusCode: 201,
+      providers: generation.providers,
+      relevantProviderCoverage: hasMappedProviderCoverage(
+        generation.providers,
+        testCase.relevantProviderIds,
+      ),
+      planProviders: generation.planProviders,
+      planRelevantProviderCoverage:
+        generation.planProviders === null
+          ? null
+          : hasMappedProviderCoverage(
+              generation.planProviders,
+              testCase.relevantProviderIds,
+            ),
+      html: observeHtmlStructure(
+        generation.html,
+        testCase.expectedHtmlMarkers ?? [],
+      ),
+    },
+    invocation: {
+      providerId: testCase.invocation.providerId,
+      action: invocationInput.action,
+      arguments: invocationInput.arguments,
+      idempotencyKey,
+      statusCode: 200,
+      retryStatusCode: 200,
+      decisionStatus: invoked.decision.status,
+      providerInGeneratedExperience,
+      eventId: invoked.eventId,
+      worldRevision: invoked.worldRevision,
+      retryReturnedSameResponse: isDeepStrictEqual(invoked, retried),
+      persistence: {
+        statePatchPersisted,
+        revisionPersisted:
+          invoked.worldRevision === worldBefore.revision + 1 &&
+          worldAfter.revision === invoked.worldRevision &&
+          eventsAfter.worldRevision === invoked.worldRevision,
+        eventPersisted: matchingEvents.length === 1 && eventPayloadPersisted,
+        eventPayloadPersisted,
+        matchingDecisionEventCount: matchingEvents.length,
+        retryDidNotAddEvent:
+          isDeepStrictEqual(eventsAfterRetry.events, eventsAfter.events) &&
+          eventsAfterRetry.events.filter(
+            (event) => event.id === invoked.eventId,
+          ).length === 1 &&
+          !eventsBefore.events.some((event) => event.id === invoked.eventId),
+        retryDidNotAdvanceRevision:
+          worldAfterRetry.revision === worldAfter.revision &&
+          eventsAfterRetry.worldRevision === eventsAfter.worldRevision,
+      },
+    },
+  });
+}
+
+type GenerationResult = {
+  sessionId: string;
+  html: string;
+  providers: Array<{ fixtureProviderId: string | null; worldId: string }>;
+  planProviders: Array<{
+    fixtureProviderId: string | null;
+    worldId: string;
+  }> | null;
+};
+
+async function generateSingle(
+  app: FastifyInstance,
+  testCase: EvaluationCase,
+  preferredWorldIds: string[],
+  fixtureIdByWorldId: ReadonlyMap<string, string>,
+): Promise<GenerationResult> {
+  const request = ExperienceRequestSchema.parse({
+    intent: testCase.intent,
+    preferredWorldIds,
+  });
+  const response = await injectParsed(
+    app,
+    { method: "POST", url: "/v1/experiences", payload: request },
+    201,
+    ExperienceResponseSchema,
+    `generate experience for case '${testCase.id}'`,
+  );
+  return {
+    sessionId: response.experience.sessionId,
+    html: response.experience.html,
+    providers: mapGeneratedProviders(response.providers, fixtureIdByWorldId),
+    planProviders: null,
+  };
+}
+
+async function generateComposition(
+  app: FastifyInstance,
+  testCase: EvaluationCase,
+  retrievalCutoff: number,
+  preferredWorldIds: string[],
+  fixtureIdByWorldId: ReadonlyMap<string, string>,
+): Promise<GenerationResult> {
+  const request = ComposeRequestSchema.parse({
+    intent: testCase.intent,
+    preferredWorldIds,
+    maxProviders: retrievalCutoff,
+  });
+  const response = await injectParsed(
+    app,
+    { method: "POST", url: "/v1/compose", payload: request },
+    201,
+    ComposeResponseSchema,
+    `compose experience for case '${testCase.id}'`,
+  );
+  return {
+    sessionId: response.experience.sessionId,
+    html: response.experience.html,
+    providers: mapGeneratedProviders(response.providers, fixtureIdByWorldId),
+    planProviders: response.plan.steps.map(({ worldId }) => ({
+      fixtureProviderId: fixtureIdByWorldId.get(worldId) ?? null,
+      worldId,
+    })),
+  };
+}
+
+function mapGeneratedProviders(
+  providers: ReadonlyArray<{ id: string }>,
+  fixtureIdByWorldId: ReadonlyMap<string, string>,
+): Array<{ fixtureProviderId: string | null; worldId: string }> {
+  return providers.map(({ id: worldId }) => ({
+    fixtureProviderId: fixtureIdByWorldId.get(worldId) ?? null,
+    worldId,
+  }));
+}
+
+export function baselineDiscover(
   intent: string,
-  providers: Array<{ name: string; text: string }>,
-): string[] {
+  providers: readonly SeededProvider[],
+  cutoff: number,
+) {
   const terms = intent.toLowerCase().match(/[a-z0-9]+/g) ?? [];
   return providers
-    .map((provider) => {
-      const haystack = provider.text.toLowerCase();
-      const score = terms.reduce(
-        (count, term) => count + (haystack.includes(term) ? 1 : 0),
+    .map((provider, providerIndex) => ({
+      provider,
+      providerIndex,
+      score: terms.reduce(
+        (count, term) =>
+          count +
+          (provider.searchableText.toLowerCase().includes(term) ? 1 : 0),
         0,
-      );
-      return { name: provider.name, score };
-    })
-    .filter((entry) => entry.score > 0)
-    .sort((left, right) => right.score - left.score)
-    .map((entry) => entry.name);
+      ),
+    }))
+    .filter(({ score }) => score > 0)
+    .sort(
+      (left, right) =>
+        right.score - left.score || left.providerIndex - right.providerIndex,
+    )
+    .slice(0, cutoff)
+    .map(({ provider, score }, index) => ({
+      rank: index + 1,
+      fixtureProviderId: provider.fixtureProviderId,
+      worldId: null,
+      score,
+    }));
 }
 
-function topHit(ranked: string[], relevant: string[]): boolean {
-  return ranked.length > 0 && relevant.includes(ranked[0] as string);
+function isTopHit(
+  ranked: ReadonlyArray<{ fixtureProviderId: string | null }>,
+  relevantProviderIds: readonly string[],
+): boolean {
+  const first = ranked[0]?.fixtureProviderId;
+  return (
+    first !== null && first !== undefined && relevantProviderIds.includes(first)
+  );
 }
 
-function allFound(ranked: string[], relevant: string[]): boolean {
-  return relevant.every((name) => ranked.includes(name));
+function hasRelevantCoverage(
+  ranked: ReadonlyArray<{ fixtureProviderId: string | null }>,
+  relevantProviderIds: readonly string[],
+): boolean {
+  const observed = new Set(
+    ranked.flatMap(({ fixtureProviderId }) =>
+      fixtureProviderId === null ? [] : [fixtureProviderId],
+    ),
+  );
+  return relevantProviderIds.every((providerId) => observed.has(providerId));
 }
 
-export type EvalReport = {
-  model: string;
-  cases: number;
-  baseline: {
-    discoveryTopHitRate: number;
-    multiProviderCoverageRate: number;
-    taskSpecificUiRate: number;
-    avgUserSteps: number;
-    canCompose: boolean;
-  };
-  agent: {
-    discoveryTopHitRate: number;
-    multiProviderCoverageRate: number;
-    taskSpecificUiRate: number;
-    avgUserSteps: number;
-    canCompose: boolean;
-  };
-  costUsd: number;
-};
+function hasMappedProviderCoverage(
+  providers: ReadonlyArray<{ fixtureProviderId: string | null }>,
+  relevantProviderIds: readonly string[],
+): boolean {
+  return hasRelevantCoverage(providers, relevantProviderIds);
+}
 
-export async function runEval(app: FastifyInstance): Promise<EvalReport> {
-  const config = loadConfig();
-
-  // Seed providers and capture their searchable text for the baseline.
-  const seeded: Array<{ name: string; id: string; text: string }> = [];
-  for (const provider of PROVIDERS) {
-    const createResponse = await app.inject({
-      method: "POST",
-      url: "/v1/worlds",
-      payload: { preferredName: provider.name, message: provider.message },
-    });
-    const created = createResponse.json() as {
-      world: { id: string; slug: string; searchableText: string };
-      ownerToken: string;
-    };
-    await app.inject({
-      method: "POST",
-      url: `/v1/worlds/${created.world.id}/publish`,
-      headers: { "x-owner-token": created.ownerToken },
-    });
-    seeded.push({
-      name: provider.name,
-      id: created.world.id,
-      text: `${provider.name} ${created.world.searchableText}`,
-    });
+async function injectParsed<T>(
+  app: FastifyInstance,
+  request: EvaluationInjectRequest,
+  expectedStatus: number,
+  schema: z.ZodType<T>,
+  operation: string,
+): Promise<T> {
+  const response = await app.inject(request);
+  const body = response.json<unknown>();
+  if (response.statusCode !== expectedStatus) {
+    throw new Error(
+      `Evaluation could not ${operation}: expected HTTP ${expectedStatus}, received ${response.statusCode}: ${JSON.stringify(body)}`,
+    );
   }
-
-  let baselineTopHits = 0;
-  let baselineMultiCoverage = 0;
-  let baselineSteps = 0;
-  let agentTopHits = 0;
-  let agentMultiCoverage = 0;
-  let agentUi = 0;
-  let agentSteps = 0;
-  let multiCases = 0;
-
-  for (const testCase of CASES) {
-    // Baseline discovery + fixed navigation cost.
-    const baselineRanked = baselineDiscover(testCase.intent, seeded);
-    if (topHit(baselineRanked, testCase.relevantProviderNames))
-      baselineTopHits += 1;
-    // A conventional flow: read listing, click a provider, read its page,
-    // then act. For multi-need intents the user repeats per provider site.
-    const baselineCaseSteps = testCase.multiProvider
-      ? 3 * testCase.relevantProviderNames.length
-      : 3;
-    baselineSteps += baselineCaseSteps;
-
-    // Agent discovery via the real blended index.
-    const searchResponse = await app.inject({
-      method: "GET",
-      url: `/v1/index/search?query=${encodeURIComponent(testCase.intent)}&limit=5`,
-    });
-    const agentRanked = (
-      searchResponse.json().results as Array<{ world: { name: string } }>
-    ).map((entry) => entry.world.name);
-    if (topHit(agentRanked, testCase.relevantProviderNames)) agentTopHits += 1;
-
-    if (testCase.multiProvider) {
-      multiCases += 1;
-      if (allFound(baselineRanked, testCase.relevantProviderNames))
-        baselineMultiCoverage += 1;
-      const composeResponse = await app.inject({
-        method: "POST",
-        url: "/v1/compose",
-        payload: { intent: testCase.intent, maxProviders: 4 },
-      });
-      if (composeResponse.statusCode === 201) {
-        const composed = composeResponse.json() as {
-          providers: Array<{ name: string }>;
-          experience: { html: string };
-        };
-        const names = composed.providers.map((p) => p.name);
-        if (allFound(names, testCase.relevantProviderNames))
-          agentMultiCoverage += 1;
-        if (composed.experience.html.length > 100) agentUi += 1;
-      }
-      // Agent flow: one intent -> one composed interface -> act.
-      agentSteps += 2;
-    } else {
-      const experienceResponse = await app.inject({
-        method: "POST",
-        url: "/v1/experiences",
-        payload: { intent: testCase.intent },
-      });
-      if (experienceResponse.statusCode === 201) {
-        const experience = experienceResponse.json() as {
-          experience: { html: string };
-        };
-        if (experience.experience.html.length > 100) agentUi += 1;
-      }
-      agentSteps += 2;
-    }
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    throw new Error(
+      `Evaluation could not ${operation}: response schema validation failed: ${z.prettifyError(parsed.error)}`,
+    );
   }
+  return parsed.data;
+}
 
-  const cases = CASES.length;
+function usageDelta(before: UsageSnapshot, after: UsageSnapshot) {
+  const purposeNames = new Set([
+    ...Object.keys(before.byPurpose),
+    ...Object.keys(after.byPurpose),
+  ]);
   return {
-    model: config.modelMode === "mock" ? "mock" : config.openRouterModel,
-    cases,
-    baseline: {
-      discoveryTopHitRate: round(baselineTopHits / cases),
-      multiProviderCoverageRate:
-        multiCases > 0 ? round(baselineMultiCoverage / multiCases) : 0,
-      taskSpecificUiRate: 0, // baseline shows fixed pages, never task-specific UI
-      avgUserSteps: round(baselineSteps / cases),
-      canCompose: false,
-    },
-    agent: {
-      discoveryTopHitRate: round(agentTopHits / cases),
-      multiProviderCoverageRate:
-        multiCases > 0 ? round(agentMultiCoverage / multiCases) : 0,
-      taskSpecificUiRate: round(agentUi / cases),
-      avgUserSteps: round(agentSteps / cases),
-      canCompose: true,
-    },
-    costUsd: getUsageTotals().costUsd,
+    scope: "process-counter-delta" as const,
+    calls: after.calls - before.calls,
+    costUsd: roundCurrency(after.costUsd - before.costUsd),
+    promptTokens: after.promptTokens - before.promptTokens,
+    completionTokens: after.completionTokens - before.completionTokens,
+    byPurpose: Object.fromEntries(
+      [...purposeNames]
+        .sort()
+        .map((purpose) => {
+          const start = before.byPurpose[purpose] ?? { calls: 0, costUsd: 0 };
+          const end = after.byPurpose[purpose] ?? { calls: 0, costUsd: 0 };
+          return [
+            purpose,
+            {
+              calls: end.calls - start.calls,
+              costUsd: roundCurrency(end.costUsd - start.costUsd),
+            },
+          ];
+        })
+        .filter(([, value]) => {
+          const bucket = value as { calls: number; costUsd: number };
+          return bucket.calls !== 0 || bucket.costUsd !== 0;
+        }),
+    ),
   };
 }
 
-function round(value: number): number {
-  return Math.round(value * 1000) / 1000;
+function roundCurrency(value: number): number {
+  return Number(value.toFixed(6));
 }
 
 export async function main(): Promise<void> {
@@ -264,7 +714,19 @@ export async function main(): Promise<void> {
         })
       : await buildApp({ config, store: new MemoryStore() });
   try {
-    const report = await runEval(app);
+    const report = await runEval(app, {
+      runtime: {
+        runtimeId:
+          config.modelMode === "mock"
+            ? "mock-model-runtime"
+            : "openrouter-model-runtime",
+        modelId: config.modelMode === "mock" ? "mock" : config.openRouterModel,
+        embeddingModelId:
+          config.modelMode === "mock"
+            ? "hashing-embedder-256"
+            : config.openRouterEmbeddingModel,
+      },
+    });
     console.log(JSON.stringify(report, null, 2));
   } finally {
     await app.close();

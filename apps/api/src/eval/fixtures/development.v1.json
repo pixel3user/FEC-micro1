@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "split": "development",
+  "cases": [
+    {
+      "id": "dev-commuter-bike-tune-up",
+      "mode": "single",
+      "intent": "my commuter bicycle needs a tune-up",
+      "relevantProviderIds": ["cog-and-chain"],
+      "invocation": {
+        "providerId": "cog-and-chain",
+        "action": "request a commuter bike tune-up assessment",
+        "arguments": {
+          "bikeUse": "daily commuting",
+          "concerns": ["brakes", "gears"]
+        }
+      },
+      "expectedHtmlMarkers": ["<!doctype html>", "window.agent.invoke"]
+    },
+    {
+      "id": "dev-birthday-venue-and-catering",
+      "mode": "compose",
+      "intent": "plan a birthday gathering with a venue and food",
+      "relevantProviderIds": ["northstar-events", "feast-collective"],
+      "invocation": {
+        "providerId": "northstar-events",
+        "action": "draft a coordinated birthday event plan",
+        "arguments": {
+          "guestCount": 24,
+          "mealStyle": "buffet"
+        }
+      },
+      "expectedHtmlMarkers": ["<!doctype html>", "window.agent.invoke"]
+    },
+    {
+      "id": "dev-adult-saxophone-lessons",
+      "mode": "single",
+      "intent": "I want to learn to play the saxophone",
+      "relevantProviderIds": ["bluenote-studio"],
+      "invocation": {
+        "providerId": "bluenote-studio",
+        "action": "recommend a beginner saxophone lesson plan",
+        "arguments": {
+          "experienceLevel": "beginner",
+          "studentType": "adult"
+        }
+      }
+    }
+  ]
+}

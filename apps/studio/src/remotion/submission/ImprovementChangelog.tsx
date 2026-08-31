@@ -10,8 +10,21 @@ import {
   SectionTitle,
 } from "./Primitives";
 import { submission } from "./design";
+import { chapterDuration, getChapterCaptionCues } from "./narration";
 
-const CHANGELOG_DURATION = 1260;
+const CHANGELOG_DURATION = chapterDuration("changelog");
+const CHANGELOG_CAPTION_CUES = getChapterCaptionCues("changelog");
+const EXPERIMENT_STARTS = [
+  { frame: CHANGELOG_CAPTION_CUES[0]?.from ?? 0, experiment: 0 },
+  { frame: CHANGELOG_CAPTION_CUES[1]?.from ?? 0, experiment: 1 },
+  { frame: CHANGELOG_CAPTION_CUES[2]?.from ?? 0, experiment: 2 },
+  { frame: CHANGELOG_CAPTION_CUES[3]?.from ?? 0, experiment: 3 },
+  { frame: CHANGELOG_CAPTION_CUES[4]?.from ?? 0, experiment: 4 },
+  {
+    frame: CHANGELOG_CAPTION_CUES[5]?.from ?? CHANGELOG_DURATION,
+    experiment: 6,
+  },
+];
 
 type Experiment = {
   number: string;
@@ -171,7 +184,10 @@ function ExperimentCard({
 
 export function ImprovementChangelog() {
   const frame = useCurrentFrame();
-  const active = Math.min(experiments.length - 1, Math.max(0, Math.floor(frame / 180)));
+  const active = EXPERIMENT_STARTS.reduce(
+    (latest, start) => (frame >= start.frame ? start.experiment : latest),
+    0,
+  );
   const progress = interpolate(frame, [0, CHANGELOG_DURATION - 60], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -260,35 +276,7 @@ export function ImprovementChangelog() {
         </div>
       </div>
 
-      <CaptionTicker
-        cues={[
-          {
-            from: 0,
-            text: "We started from the simple baseline: every expected journey needs its own route, form, branches, integrations, and result view.",
-          },
-          {
-            from: 180,
-            text: "The first experiment replaced those per-intent screens with one shared runtime, generated experiences, and a generic action bridge.",
-          },
-          {
-            from: 360,
-            text: "Malformed model output and browser failures taught us to replace direct parsing with validation, fallback, error capture, and repair.",
-          },
-          {
-            from: 540,
-            text: "Semantic discovery fixed vocabulary mismatch, improving relevant top-provider ranking from two of four to four of four fixed cases.",
-          },
-          {
-            from: 720,
-            to: 900,
-            text: "Composition then combined two separate services into one tested plan and one user-facing experience.",
-          },
-          {
-            from: 1080,
-            text: "The final evaluation shows the overall gain and its limits: generated UI is today’s bridge, while direct verified results are the next experiment.",
-          },
-        ]}
-      />
+      <CaptionTicker cues={CHANGELOG_CAPTION_CUES} />
     </Scene>
   );
 }

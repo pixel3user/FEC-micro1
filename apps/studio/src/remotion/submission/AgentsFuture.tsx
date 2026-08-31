@@ -12,6 +12,7 @@ import {
   SectionTitle,
 } from "./Primitives";
 import { submission } from "./design";
+import { chapterDuration, getChapterCaptionCues } from "./narration";
 
 const workflowModules = [
   ["ROUTES + PAGES", "router · view shell", "A path for every expected journey"],
@@ -331,7 +332,7 @@ function TrustedExecution() {
 export function AgentsChapter() {
   const frame = useCurrentFrame();
   return (
-    <Scene duration={900}>
+    <Scene duration={chapterDuration("agents")}>
       <Reveal delay={2}>
         <SectionTitle
           number="05"
@@ -361,30 +362,7 @@ export function AgentsChapter() {
         <TrustedExecution />
       </Reveal>
 
-      <CaptionTicker
-        cues={[
-          {
-            from: 0,
-            text: "Before, every expected outcome needs an application-specific workflow stack built in advance.",
-          },
-          {
-            from: 170,
-            text: "That stack includes routes, forms, state, branches, provider adapters, result views, and the libraries connecting them.",
-          },
-          {
-            from: 350,
-            text: "Each new journey adds implementation, testing, dependencies, and maintenance before the user can request it.",
-          },
-          {
-            from: 530,
-            text: "The benefit is adaptability: one reasoning process can combine context, constraints, capabilities, and live state for outcomes no developer preprogrammed.",
-          },
-          {
-            from: 700,
-            text: "This removes repeated workflow code and lets providers add capabilities once, while deterministic systems still enforce permission, validation, storage, and execution.",
-          },
-        ]}
-      />
+      <CaptionTicker cues={getChapterCaptionCues("agents")} />
     </Scene>
   );
 }
@@ -560,7 +538,7 @@ export function FutureChapter() {
     extrapolateRight: "clamp",
   });
   return (
-    <Scene duration={900}>
+    <Scene duration={chapterDuration("future")}>
       <Reveal delay={2}>
         <SectionTitle
           number="06"
@@ -625,30 +603,7 @@ export function FutureChapter() {
         </div>
       </div>
 
-      <CaptionTicker
-        cues={[
-          {
-            from: 0,
-            text: "Context tells the model who the user is, what is happening now, and which constraints must survive the plan.",
-          },
-          {
-            from: 180,
-            text: "Tools let the agent discover capabilities, retrieve live information, perform authorized operations, and verify results.",
-          },
-          {
-            from: 360,
-            text: "Memory carries useful preferences and previous decisions forward without making the user repeat them.",
-          },
-          {
-            from: 540,
-            text: "Together they allow more application-specific frontend and backend workflow code to become runtime reasoning.",
-          },
-          {
-            from: 690,
-            text: "The end goal is an internet where people communicate desired outcomes and generative AI returns the result directly.",
-          },
-        ]}
-      />
+      <CaptionTicker cues={getChapterCaptionCues("future")} />
     </Scene>
   );
 }
@@ -666,7 +621,7 @@ export function ClosingChapter() {
     extrapolateRight: "clamp",
   });
   return (
-    <Scene duration={330} style={{ paddingTop: 122 }}>
+    <Scene duration={chapterDuration("close")} style={{ paddingTop: 122 }}>
       <div style={{ display: "grid", gridTemplateColumns: "0.82fr 1.4fr", gap: 66, alignItems: "end" }}>
         <Reveal delay={4}>
           <div>

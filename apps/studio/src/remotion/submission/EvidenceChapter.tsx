@@ -11,8 +11,9 @@ import {
   SectionTitle,
 } from "./Primitives";
 import { submission } from "./design";
+import { chapterDuration, getChapterCaptionCues } from "./narration";
 
-const EVIDENCE_DURATION = 1560;
+const EVIDENCE_DURATION = chapterDuration("evidence");
 
 type EvidenceKind = "LIVE*" | "STRUCTURAL" | "MODELED" | "TESTED";
 
@@ -369,46 +370,7 @@ export function EvidenceChapter() {
         <EvaluationTable frame={frame} />
       </Reveal>
 
-      <CaptionTicker
-        cues={[
-          {
-            from: 0,
-            text: "The primary question is whether one shared reasoning runtime can serve different intents without a separately implemented workflow for each one.",
-          },
-          {
-            from: 180,
-            text: "The simple baseline assumes a prebuilt route, form, workflow branches, provider handlers, and result view for every journey.",
-          },
-          {
-            from: 360,
-            text: "The agent uses the same configured runtime and generic invocation contract across all four fixed evaluation intents.",
-          },
-          {
-            from: 540,
-            text: "In the documented live run, generated experiences were returned for zero of four baseline cases and four of four agent cases.",
-          },
-          {
-            from: 720,
-            text: "This shows the runtime can create task-specific experiences; verified real-world completion remains the next measure.",
-          },
-          {
-            from: 900,
-            text: "Semantic discovery is supporting evidence: relevant top-provider ranking improved from two of four to four of four fixed cases.",
-          },
-          {
-            from: 1080,
-            text: "Average human actions fall from three point seven five to two, but those values are modeled assumptions, not observed telemetry.",
-          },
-          {
-            from: 1240,
-            text: "Integration tests separately verify a two-provider plan, a state update with a decision event, and duplicate-action suppression.",
-          },
-          {
-            from: 1400,
-            text: "The evidence supports replacing more task-specific workflow implementation with reasoning, while trusted execution systems remain.",
-          },
-        ]}
-      />
+      <CaptionTicker cues={getChapterCaptionCues("evidence")} />
     </Scene>
   );
 }

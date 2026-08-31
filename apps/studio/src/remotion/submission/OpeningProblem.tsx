@@ -11,6 +11,7 @@ import {
   SectionTitle,
 } from "./Primitives";
 import { submission } from "./design";
+import { chapterDuration, getChapterCaptionCues } from "./narration";
 
 const titleCards = [
   {
@@ -48,7 +49,7 @@ export function TitleChapter() {
     config: { damping: 180, mass: 0.85 },
   });
   return (
-    <Scene duration={270} style={{ paddingTop: 112 }}>
+    <Scene duration={chapterDuration("title")} style={{ paddingTop: 112 }}>
       <div
         style={{
           display: "grid",
@@ -149,14 +150,7 @@ export function TitleChapter() {
           </Reveal>
         ))}
       </div>
-      <CaptionTicker
-        cues={[
-          {
-            from: 0,
-            text: "Every application is built for human interaction, with pages, menus, forms, and controls that become obstacles for agents.",
-          },
-        ]}
-      />
+      <CaptionTicker cues={getChapterCaptionCues("title")} />
     </Scene>
   );
 }
@@ -450,7 +444,7 @@ function ProviderCodeStack() {
 
 export function ProblemChapter() {
   return (
-    <Scene duration={840}>
+    <Scene duration={chapterDuration("problem")}>
       <Reveal delay={2}>
         <SectionTitle
           number="01"
@@ -477,22 +471,7 @@ export function ProblemChapter() {
           <ProviderCodeStack />
         </Reveal>
       </div>
-      <CaptionTicker
-        cues={[
-          {
-            from: 0,
-            text: "Pages, menus, filters, accounts, and forms are translations between one human intention and one provider action.",
-          },
-          {
-            from: 390,
-            text: "Providers pay the same tax: frontend and backend workflows for every interaction they can predict.",
-          },
-          {
-            from: 610,
-            text: "Our goal is to replace that application-specific interaction code with reasoning at runtime.",
-          },
-        ]}
-      />
+      <CaptionTicker cues={getChapterCaptionCues("problem")} />
     </Scene>
   );
 }
@@ -686,7 +665,7 @@ export function BottleneckChapter() {
     }),
   );
   return (
-    <Scene duration={840}>
+    <Scene duration={chapterDuration("bottleneck")}>
       <Reveal delay={2}>
         <SectionTitle
           number="02"
@@ -880,34 +859,7 @@ export function BottleneckChapter() {
           </div>
         </div>
       </Reveal>
-      <CaptionTicker
-        cues={[
-          {
-            from: 0,
-            text: "Many websites optimize navigation and attention even when the user already knows the result they want.",
-          },
-          {
-            from: 145,
-            text: "If an agent understands the same human actions, the interaction no longer needs to be pre-rendered as pages and forms.",
-          },
-          {
-            from: 325,
-            text: "For example, booking a flight still means navigating filters, seat maps, and checkout.",
-          },
-          {
-            from: 435,
-            text: "The changing workflow can come from LLM reasoning instead of permanently written application logic.",
-          },
-          {
-            from: 575,
-            text: "For example, reasoning can rebook disrupted travel without a prewritten recovery flow.",
-          },
-          {
-            from: 690,
-            text: "A small trusted substrate remains for identity, permission, storage, validation, and transport.",
-          },
-        ]}
-      />
+      <CaptionTicker cues={getChapterCaptionCues("bottleneck")} />
     </Scene>
   );
 }

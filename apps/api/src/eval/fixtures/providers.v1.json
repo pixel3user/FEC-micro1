@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "providers": [
+    {
+      "id": "cog-and-chain",
+      "name": "Cog and Chain Co-op",
+      "message": "A bicycle repair co-op servicing commuter bikes, stocking common parts, and handling unusual custom requests."
+    },
+    {
+      "id": "northstar-events",
+      "name": "Northstar Events",
+      "message": "We help groups plan local events, find venues, and coordinate schedules for gatherings."
+    },
+    {
+      "id": "feast-collective",
+      "name": "Feast Collective",
+      "message": "We provide catering and food service for events, parties, and corporate gatherings."
+    },
+    {
+      "id": "clearview-eye-clinic",
+      "name": "Clearview Eye Clinic",
+      "message": "A clinic offering eye examinations, vision tests, and prescriptions for glasses and contacts."
+    },
+    {
+      "id": "bluenote-studio",
+      "name": "Bluenote Studio",
+      "message": "A music school offering saxophone, piano, and guitar lessons for adults and teenagers."
+    },
+    {
+      "id": "harbor-printworks",
+      "name": "Harbor Printworks",
+      "message": "A local print shop producing workshop packets, event signs, name badges, and other printed materials."
+    },
+    {
+      "id": "swift-courier",
+      "name": "Swift Courier",
+      "message": "A same-day courier coordinating pickup and delivery of packages, supplies, and event materials across town."
+    }
+  ]
+}

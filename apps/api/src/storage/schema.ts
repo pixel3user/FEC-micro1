@@ -11,13 +11,10 @@ CREATE TABLE IF NOT EXISTS worlds (
   searchable_text text NOT NULL,
   published boolean NOT NULL DEFAULT false,
   owner_token_hash text NOT NULL,
-  embedding jsonb,
   revision integer NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
-
-ALTER TABLE worlds ADD COLUMN IF NOT EXISTS embedding jsonb;
 
 CREATE INDEX IF NOT EXISTS worlds_search_idx
   ON worlds USING gin (to_tsvector('simple', searchable_text));

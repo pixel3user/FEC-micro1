@@ -4,14 +4,6 @@
 
 The platform fixes only discovery, model access, persistence, sandboxing, transport, and observability. It does not define provider business schemas, action names, workflows, or generated interface layouts. A provider LLM's recorded decision is the prototype's current ground truth.
 
-## Multi-provider composition
-
-A single intent can span several provider worlds. `POST /v1/compose` discovers (or accepts) candidate worlds, asks the model for a composition plan (which world plays which role, with `dependsOn` ordering and an invented suggested action per step), then generates one interface that orchestrates all referenced worlds through the same generic `agent.invoke` bridge. Only worlds the plan references are kept in the session. Verified live: a "find a venue and arrange catering" intent produced a two-step plan and a UI referencing both world ids. This is the capability no single traditional website offers — cross-provider coordination assembled at request time.
-
-## Self-healing generated UI
-
-Generated documents run in the sandbox and report runtime errors (`window.onerror` and `unhandledrejection`) back to the host through the same message channel used for actions. When an error is reported, the host can call `POST /v1/experiences/repair` with the session id and the error text. The model receives the previous (broken) HTML plus the error and returns a corrected full document, which is persisted as a new experience for the session and swapped into the sandbox. This keeps the "generated fresh each time" property while making it robust to the occasional broken generation observed in live testing.
-
 ## Runtime flow
 
 1. A provider describes an open-ended service in conversation.
@@ -22,10 +14,6 @@ Generated documents run in the sandbox and report runtime errors (`window.onerro
 6. The document runs in a sandboxed cross-origin iframe and has one injected transport primitive: `agent.invoke({ worldId, action, arguments })`.
 7. The action name and arguments are unrestricted JSON chosen at runtime. The provider model interprets them using its world and event history.
 8. The model's decision and state patch are appended to the event log and become context for later decisions.
-
-## Discovery: blended semantic + lexical
-
-When a world is published, the platform embeds its name/summary/searchable text with a low-cost embedding model and stores the vector. Discovery embeds the query, scores published worlds by cosine similarity, and blends that (weight 0.6) with the normalized PostgreSQL full-text lexical rank (weight 0.4). This lets intent match meaning even without shared keywords (verified live: an eye clinic ranks above a bulldozer rental for "my vision is blurry"), while lexical overlap still contributes. Embedding failures are non-fatal and the system degrades to lexical-only search; `SEMANTIC_SEARCH=off` disables embeddings entirely. Tests use a deterministic hashing embedder so the default suite spends nothing.
 
 ## Scalable public index
 

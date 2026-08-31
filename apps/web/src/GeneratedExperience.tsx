@@ -7,7 +7,7 @@ import { z } from "zod";
 import { api } from "./api";
 import { injectAgentBridge } from "./bridge";
 
-const InvokeMessageSchema = z.object({
+const BridgeMessageSchema = z.object({
   source: z.literal("agent-native-generated-ui"),
   type: z.literal("invoke"),
   requestId: z.string().min(1).max(200),
@@ -18,13 +18,6 @@ const InvokeMessageSchema = z.object({
   }),
 });
 
-const RuntimeErrorMessageSchema = z.object({
-  source: z.literal("agent-native-generated-ui"),
-  type: z.literal("runtime-error"),
-  kind: z.string().max(80),
-  detail: z.string().max(2_000),
-});
-
 type Trace = {
   requestId: string;
   action: string;
@@ -32,58 +25,24 @@ type Trace = {
   detail: string;
 };
 
-type RepairState =
-  | { status: "healthy" }
-  | { status: "detected"; error: string }
-  | { status: "repairing"; error: string }
-  | { status: "failed"; error: string };
-
 export function GeneratedExperienceFrame({
-  experience: initialExperience,
+  experience,
 }: {
   experience: GeneratedExperience;
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
-  const [experience, setExperience] = useState(initialExperience);
   const [traces, setTraces] = useState<Trace[]>([]);
-  const [repair, setRepair] = useState<RepairState>({ status: "healthy" });
-  // Level A: an agent-supplied follow-up document that replaces the current
-  // view when a decision returns `nextView`.
-  const [agentView, setAgentView] = useState<string | null>(null);
-  const activeHtml = agentView ?? experience.html;
-  const source = useMemo(() => injectAgentBridge(activeHtml), [activeHtml]);
+  const source = useMemo(
+    () => injectAgentBridge(experience.html),
+    [experience.html],
+  );
 
   useEffect(() => {
-    setExperience(initialExperience);
-    setTraces([]);
-    setRepair({ status: "healthy" });
-    setAgentView(null);
-  }, [initialExperience]);
-
-  useEffect(() => {
-    const sendResult = (
-      requestId: string,
-      ok: boolean,
-      payload?: unknown,
-      error?: string,
-    ) => {
-      frame.current?.contentWindow?.postMessage(
-        {
-          source: "agent-native-host",
-          type: "result",
-          requestId,
-          ok,
-          payload,
-          error,
-        },
-        "*",
-      );
-    };
-
-    const handleInvoke = async (
-      parsed: z.infer<typeof InvokeMessageSchema>,
-    ) => {
-      const { requestId, input } = parsed;
+    const receive = async (event: MessageEvent<unknown>) => {
+      if (event.source !== frame.current?.contentWindow) return;
+      const parsed = BridgeMessageSchema.safeParse(event.data);
+      if (!parsed.success) return;
+      const { requestId, input } = parsed.data;
       if (!experience.worldIds.includes(input.worldId)) {
         sendResult(
           requestId,
@@ -121,13 +80,6 @@ export function GeneratedExperienceFrame({
           ),
         );
         sendResult(requestId, true, result);
-        // Level A: if the agent proposed a follow-up view, swap the sandbox to
-        // it. The result was already returned above so the current UI can also
-        // react before it is replaced.
-        if (result.decision.nextView) {
-          const nextView = result.decision.nextView;
-          setTimeout(() => setAgentView(nextView), 400);
-        }
       } catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
         setTraces((current) =>
@@ -141,47 +93,28 @@ export function GeneratedExperienceFrame({
       }
     };
 
-    const receive = (event: MessageEvent<unknown>) => {
-      if (event.source !== frame.current?.contentWindow) return;
-      const invoke = InvokeMessageSchema.safeParse(event.data);
-      if (invoke.success) {
-        void handleInvoke(invoke.data);
-        return;
-      }
-      const runtimeError = RuntimeErrorMessageSchema.safeParse(event.data);
-      if (runtimeError.success) {
-        setRepair((current) =>
-          current.status === "repairing"
-            ? current
-            : {
-                status: "detected",
-                error: `${runtimeError.data.kind}: ${runtimeError.data.detail}`,
-              },
-        );
-      }
+    const sendResult = (
+      requestId: string,
+      ok: boolean,
+      payload?: unknown,
+      error?: string,
+    ) => {
+      frame.current?.contentWindow?.postMessage(
+        {
+          source: "agent-native-host",
+          type: "result",
+          requestId,
+          ok,
+          payload,
+          error,
+        },
+        "*",
+      );
     };
 
     window.addEventListener("message", receive);
     return () => window.removeEventListener("message", receive);
   }, [experience]);
-
-  const runRepair = async (error: string) => {
-    setRepair({ status: "repairing", error });
-    try {
-      const response = await api.repairExperience({
-        sessionId: experience.sessionId,
-        error,
-      });
-      setExperience(response.experience);
-      setTraces([]);
-      setRepair({ status: "healthy" });
-    } catch (caught) {
-      setRepair({
-        status: "failed",
-        error: caught instanceof Error ? caught.message : String(caught),
-      });
-    }
-  };
 
   return (
     <div className="experience-layout">
@@ -193,29 +126,6 @@ export function GeneratedExperienceFrame({
           </div>
           <span className="status-dot">Sandboxed</span>
         </div>
-        {repair.status !== "healthy" && (
-          <div className={`repair-bar ${repair.status}`} role="status">
-            {repair.status === "detected" && (
-              <>
-                <span>The generated interface reported an error.</span>
-                <button onClick={() => void runRepair(repair.error)}>
-                  Ask the model to repair it
-                </button>
-              </>
-            )}
-            {repair.status === "repairing" && (
-              <span>Regenerating a corrected interface…</span>
-            )}
-            {repair.status === "failed" && (
-              <>
-                <span>Repair failed: {repair.error}</span>
-                <button onClick={() => void runRepair(repair.error)}>
-                  Retry repair
-                </button>
-              </>
-            )}
-          </div>
-        )}
         <iframe
           ref={frame}
           className="generated-frame"

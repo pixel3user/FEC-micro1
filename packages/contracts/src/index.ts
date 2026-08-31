@@ -103,33 +103,11 @@ export const DynamicActionRequestSchema = z.object({
 });
 export type DynamicActionRequest = z.infer<typeof DynamicActionRequestSchema>;
 
-export const DecisionDisplayFieldSchema = z.object({
-  label: z.string().min(1).max(200),
-  value: z.string().min(1).max(2_000),
-});
-export type DecisionDisplayField = z.infer<typeof DecisionDisplayFieldSchema>;
-
-export const DecisionDisplaySchema = z.object({
-  kind: z.enum(["confirmation", "result", "form", "notice"]).default("result"),
-  title: z.string().min(1).max(300),
-  fields: z.array(DecisionDisplayFieldSchema).max(20).default([]),
-});
-export type DecisionDisplay = z.infer<typeof DecisionDisplaySchema>;
-
 export const DynamicActionDecisionSchema = z.object({
   decision: z.string().min(1).max(10_000),
   result: JsonValueSchema,
   statePatch: JsonObjectSchema,
   publicSummary: z.string().min(1).max(2_000),
-  // Outcome status the UI can trust — never a free-text guess.
-  status: z.enum(["ok", "needs_input", "declined", "error"]).default("ok"),
-  // Structured render hint so the current UI can show the outcome without
-  // inventing its own conventions.
-  display: DecisionDisplaySchema.optional(),
-  // Level A: an optional full follow-up document the agent wants shown next.
-  // Same sandbox contract as generated experiences (starts with <!doctype html>,
-  // may call window.agent.invoke). The host swaps the sandbox to this view.
-  nextView: z.string().min(50).max(500_000).optional(),
 });
 export type DynamicActionDecision = z.infer<typeof DynamicActionDecisionSchema>;
 
@@ -162,52 +140,6 @@ export const ExperienceResponseSchema = z.object({
   providers: z.array(ProviderWorldSchema),
 });
 export type ExperienceResponse = z.infer<typeof ExperienceResponseSchema>;
-
-export const RepairExperienceRequestSchema = z.object({
-  sessionId: z.uuid(),
-  error: z.string().min(1).max(5_000),
-  context: z.string().max(5_000).optional(),
-});
-export type RepairExperienceRequest = z.infer<
-  typeof RepairExperienceRequestSchema
->;
-
-export const RepairExperienceResponseSchema = z.object({
-  experience: GeneratedExperienceSchema,
-  repaired: z.boolean(),
-});
-export type RepairExperienceResponse = z.infer<
-  typeof RepairExperienceResponseSchema
->;
-
-export const CompositionStepSchema = z.object({
-  worldId: z.uuid(),
-  worldName: z.string(),
-  role: z.string().min(1).max(500),
-  suggestedAction: z.string().min(1).max(500),
-  dependsOn: z.array(z.number().int().nonnegative()).default([]),
-});
-export type CompositionStep = z.infer<typeof CompositionStepSchema>;
-
-export const CompositionPlanSchema = z.object({
-  summary: z.string().min(1).max(2_000),
-  steps: z.array(CompositionStepSchema).min(1).max(12),
-});
-export type CompositionPlan = z.infer<typeof CompositionPlanSchema>;
-
-export const ComposeRequestSchema = z.object({
-  intent: z.string().min(2).max(5_000),
-  preferredWorldIds: z.array(z.uuid()).max(8).optional(),
-  maxProviders: z.number().int().min(1).max(8).default(4),
-});
-export type ComposeRequest = z.infer<typeof ComposeRequestSchema>;
-
-export const ComposeResponseSchema = z.object({
-  experience: GeneratedExperienceSchema,
-  providers: z.array(ProviderWorldSchema),
-  plan: CompositionPlanSchema,
-});
-export type ComposeResponse = z.infer<typeof ComposeResponseSchema>;
 
 export const ResolveResponseSchema = z.object({
   source: z.enum(["index", "dns"]),

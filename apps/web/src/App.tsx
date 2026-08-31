@@ -1,8 +1,4 @@
-import type {
-  ComposeResponse,
-  ExperienceResponse,
-  ProviderWorld,
-} from "@agent-web/contracts";
+import type { ExperienceResponse, ProviderWorld } from "@agent-web/contracts";
 import { useState, type FormEvent } from "react";
 import { api } from "./api";
 import { GeneratedExperienceFrame } from "./GeneratedExperience";
@@ -57,10 +53,7 @@ export function App() {
 
 function Discovery() {
   const [intent, setIntent] = useState("");
-  const [compose, setCompose] = useState(false);
-  const [result, setResult] = useState<
-    ExperienceResponse | ComposeResponse | null
-  >(null);
+  const [result, setResult] = useState<ExperienceResponse | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -71,19 +64,13 @@ function Discovery() {
     setError("");
     setResult(null);
     try {
-      setResult(
-        compose
-          ? await api.compose({ intent: intent.trim(), maxProviders: 4 })
-          : await api.createExperience({ intent: intent.trim() }),
-      );
+      setResult(await api.createExperience({ intent: intent.trim() }));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
       setBusy(false);
     }
   };
-
-  const plan = result && "plan" in result ? result.plan : null;
 
   return (
     <>
@@ -110,27 +97,13 @@ function Discovery() {
             placeholder="Plan a small event next weekend, compare the options, and let me change the tradeoffs…"
             rows={5}
           />
-          <label className="compose-toggle">
-            <input
-              type="checkbox"
-              checked={compose}
-              onChange={(event) => setCompose(event.target.checked)}
-            />
-            <span>Compose across multiple providers</span>
-          </label>
           <div className="form-row">
             <span>Fresh code · live provider reasoning</span>
             <button
               className="primary"
               disabled={busy || intent.trim().length < 2}
             >
-              {busy
-                ? compose
-                  ? "Composing…"
-                  : "Generating…"
-                : compose
-                  ? "Compose experience"
-                  : "Generate experience"}
+              {busy ? "Generating…" : "Generate experience"}
             </button>
           </div>
         </form>
@@ -140,30 +113,13 @@ function Discovery() {
       {result && (
         <section className="result-section">
           <div className="provider-strip">
-            <span className="eyebrow">
-              {plan ? "Composed providers" : "Discovered providers"}
-            </span>
+            <span className="eyebrow">Discovered providers</span>
             <div className="provider-pills">
               {result.providers.map((provider) => (
                 <span key={provider.id}>{provider.name}</span>
               ))}
             </div>
           </div>
-          {plan && (
-            <div className="plan-panel">
-              <span className="eyebrow">Composition plan</span>
-              <p>{plan.summary}</p>
-              <ol className="plan-steps">
-                {plan.steps.map((step, index) => (
-                  <li key={`${step.worldId}-${index}`}>
-                    <strong>{step.worldName}</strong>
-                    <span>{step.role}</span>
-                    <code>{step.suggestedAction}</code>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
           <GeneratedExperienceFrame experience={result.experience} />
         </section>
       )}

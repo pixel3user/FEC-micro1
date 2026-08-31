@@ -1,13 +1,16 @@
 import {
+  ComposeResponseSchema,
   CreateWorldResponseSchema,
   DynamicActionResponseSchema,
   ExperienceResponseSchema,
   PublishResponseSchema,
+  RepairExperienceResponseSchema,
 } from "@agent-web/contracts";
 import type { FastifyInstance } from "fastify";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { buildApp } from "./app.js";
 import type { AppConfig } from "./config.js";
+import { HashingEmbedder } from "./model/embeddings.js";
 import { MockModelRuntime } from "./model/mock.js";
 import { MemoryStore } from "./storage/memory-store.js";
 
@@ -19,6 +22,9 @@ const config: AppConfig = {
   modelMode: "mock",
   openRouterBaseUrl: "https://openrouter.ai/api/v1",
   openRouterModel: "mock",
+  openRouterFallbackModels: [],
+  openRouterEmbeddingModel: "mock-embedding",
+  semanticSearch: true,
   publicApiUrl: "http://localhost:8787",
   webOrigins: ["http://localhost:5173"],
 };
@@ -31,6 +37,7 @@ describe("agent-native public network", () => {
       config,
       store: new MemoryStore(),
       model: new MockModelRuntime(),
+      embedder: new HashingEmbedder(256),
     });
   });
 
@@ -118,6 +125,10 @@ describe("agent-native public network", () => {
       accepted: true,
       action: arbitraryAction,
     });
+    // Level A: the decision carries a trustworthy status and an optional
+    // follow-up view the host can swap the sandbox to.
+    expect(decision.decision.status).toBe("ok");
+    expect(decision.decision.nextView).toContain("<!doctype html>");
 
     const retryResponse = await app.inject({
       method: "POST",
@@ -145,5 +156,154 @@ describe("agent-native public network", () => {
         event.eventType.startsWith("agent.decision:"),
       );
     expect(decisionEvents).toHaveLength(1);
+  });
+
+  it("regenerates a corrected experience when the generated UI reports a runtime error", async () => {
+    const created = CreateWorldResponseSchema.parse(
+      (
+        await app.inject({
+          method: "POST",
+          url: "/v1/worlds",
+          payload: {
+            preferredName: "Repairable Provider",
+            message:
+              "We help people compare options for anything they describe and adapt to unusual requests.",
+          },
+        })
+      ).json(),
+    );
+    await app.inject({
+      method: "POST",
+      url: `/v1/worlds/${created.world.id}/publish`,
+      headers: { "x-owner-token": created.ownerToken },
+    });
+
+    const experience = ExperienceResponseSchema.parse(
+      (
+        await app.inject({
+          method: "POST",
+          url: "/v1/experiences",
+          payload: { intent: "Compare a few options interactively" },
+        })
+      ).json(),
+    );
+    const originalId = experience.experience.id;
+
+    const repairResponse = await app.inject({
+      method: "POST",
+      url: "/v1/experiences/repair",
+      payload: {
+        sessionId: experience.experience.sessionId,
+        error: "TypeError: Cannot read properties of undefined (reading 'map')",
+      },
+    });
+    expect(repairResponse.statusCode).toBe(201);
+    const repaired = RepairExperienceResponseSchema.parse(
+      repairResponse.json(),
+    );
+    expect(repaired.repaired).toBe(true);
+    expect(repaired.experience.id).not.toBe(originalId);
+    expect(repaired.experience.sessionId).toBe(experience.experience.sessionId);
+    expect(repaired.experience.title.toLowerCase()).toContain("repaired");
+  });
+
+  it("returns 404 when repairing a session that has no generated experience", async () => {
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/experiences/repair",
+      payload: {
+        sessionId: "99999999-9999-4999-8999-999999999999",
+        error: "boom",
+      },
+    });
+    expect(response.statusCode).toBe(404);
+  });
+
+  it("composes one intent across multiple provider worlds", async () => {
+    const publish = async (preferredName: string, message: string) => {
+      const created = CreateWorldResponseSchema.parse(
+        (
+          await app.inject({
+            method: "POST",
+            url: "/v1/worlds",
+            payload: { preferredName, message },
+          })
+        ).json(),
+      );
+      await app.inject({
+        method: "POST",
+        url: `/v1/worlds/${created.world.id}/publish`,
+        headers: { "x-owner-token": created.ownerToken },
+      });
+      return created.world.id;
+    };
+
+    const venueId = await publish(
+      "Hall Finder",
+      "We help people find event venues and halls for gatherings.",
+    );
+    const cateringId = await publish(
+      "Feast Collective",
+      "We provide catering and food service for events and gatherings.",
+    );
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/compose",
+      payload: {
+        intent: "Plan a gathering: find a venue and arrange catering",
+        preferredWorldIds: [venueId, cateringId],
+      },
+    });
+    expect(response.statusCode).toBe(201);
+    const composed = ComposeResponseSchema.parse(response.json());
+    expect(composed.providers).toHaveLength(2);
+    expect(composed.plan.steps.length).toBeGreaterThanOrEqual(2);
+    const planWorldIds = new Set(composed.plan.steps.map((s) => s.worldId));
+    expect(planWorldIds.has(venueId)).toBe(true);
+    expect(planWorldIds.has(cateringId)).toBe(true);
+    expect(composed.experience.worldIds).toContain(venueId);
+    expect(composed.experience.worldIds).toContain(cateringId);
+  });
+
+  it("ranks a semantically relevant provider above an unrelated one", async () => {
+    const publish = async (preferredName: string, message: string) => {
+      const created = CreateWorldResponseSchema.parse(
+        (
+          await app.inject({
+            method: "POST",
+            url: "/v1/worlds",
+            payload: { preferredName, message },
+          })
+        ).json(),
+      );
+      await app.inject({
+        method: "POST",
+        url: `/v1/worlds/${created.world.id}/publish`,
+        headers: { "x-owner-token": created.ownerToken },
+      });
+      return created.world.id;
+    };
+
+    const bikeId = await publish(
+      "Cog and Chain",
+      "A bicycle repair co-op that services commuter bikes and stocks common parts.",
+    );
+    await publish(
+      "Blue Note Studio",
+      "A music school offering jazz saxophone and piano lessons for adults.",
+    );
+
+    const searchResponse = await app.inject({
+      method: "GET",
+      url: `/v1/index/search?query=${encodeURIComponent("fix my bicycle")}`,
+    });
+    expect(searchResponse.statusCode).toBe(200);
+    const results = searchResponse.json().results as Array<{
+      world: { id: string };
+      score: number;
+    }>;
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].world.id).toBe(bikeId);
   });
 });

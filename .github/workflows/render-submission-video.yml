@@ -1,0 +1,61 @@
+name: Render submission video
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/studio/**"
+      - "packages/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.base.json"
+      - ".github/workflows/render-submission-video.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render-submission-video-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    name: Render 1080p MP4
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Render SubmissionVideo
+        run: |
+          mkdir -p "$RUNNER_TEMP/submission-video"
+          pnpm --dir apps/studio exec remotion render \
+            src/remotion/index.ts \
+            SubmissionVideo \
+            "$RUNNER_TEMP/submission-video/submission-video-1080p.mp4" \
+            --codec=h264 \
+            --crf=18 \
+            --concurrency=2
+      - name: Generate checksum
+        run: |
+          cd "$RUNNER_TEMP/submission-video"
+          sha256sum submission-video-1080p.mp4 > submission-video-1080p.mp4.sha256
+      - name: Upload rendered video
+        uses: actions/upload-artifact@v4
+        with:
+          name: submission-video-1080p
+          path: |
+            ${{ runner.temp }}/submission-video/submission-video-1080p.mp4
+            ${{ runner.temp }}/submission-video/submission-video-1080p.mp4.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

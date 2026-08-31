@@ -27,7 +27,9 @@ This is deliberately not a conventional API marketplace:
 
 ## Showcase (interactive, no video render)
 
-A developer-facing walkthrough of the repository — the thesis and one chapter per PR, plus an end-to-end workflow — built with [Remotion](https://remotion.dev). It runs live in the browser via `@remotion/player` (play / pause / scrub); no MP4 export is required. Each PR chapter follows the same three acts: the problem, condensed-but-faithful code from the repo, and the real captured live evidence.
+A developer-facing walkthrough of the repository — the thesis, one chapter for each core implementation PR (#1–#5), and an end-to-end workflow — built with [Remotion](https://remotion.dev). It runs live in the browser via `@remotion/player` (play / pause / scrub); no MP4 export is required. Each core PR chapter follows the same three acts: the problem, condensed-but-faithful code from the repo, and the documented live evidence.
+
+Submission artifacts: [actual project progression and evidence](docs/hackathon-submission.md) · [coding-agent trajectory and tool disclosure](docs/agent-trajectory.md)
 
 - Live player (published from `main`): https://pixel3user.github.io/FEC-micro1/
 - Run locally: `pnpm --filter "@agent-web/studio" dev`
@@ -176,7 +178,7 @@ _agent.example.com TXT "agent-manifest=https://api.example.net/.well-known/agent
 
 ## Evaluation and adversarial testing
 
-A baseline-vs-agent evaluation harness measures discovery quality, task-specific UI, user steps, and cross-provider composition on identical seeded data. See [`docs/evaluation.md`](docs/evaluation.md) for method and live results (agent reached a perfect discovery top-hit rate and produced task-specific UI on every case; the full live run cost about half a cent).
+A baseline-vs-agent evaluation harness measures discovery quality, task-specific UI, user steps, and cross-provider composition on identical seeded data. See [`docs/evaluation.md`](docs/evaluation.md) for method and live results (on four fixed cases, the agent reached a 4/4 discovery top-hit rate and produced task-specific UI for 4/4; the full live run cost about half a cent).
 
 ```bash
 MODEL_MODE=mock pnpm --filter @agent-web/api eval   # free, deterministic
@@ -202,7 +204,7 @@ Deploy the API and PostgreSQL to a public host, build the web client with the pu
 ## Prototype limitations
 
 - Provider decisions are intentionally model-authoritative and are not suitable for real money, legal, medical, or other consequential production effects.
-- PostgreSQL search is lexical; semantic embeddings can be added later if measured discovery quality requires them.
+- Semantic discovery blends embeddings with lexical ranking and retains lexical fallback; measured quality depends on the live embedding model.
 - Multi-replica global rate limits need a shared Redis-backed limiter.
 - DNS records locate manifests but do not yet establish a DNSSEC/DANE trust chain.
 - Generated code is isolated, but this remains experimental code execution and should be reviewed before extending sandbox permissions.

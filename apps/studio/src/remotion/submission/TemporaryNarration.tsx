@@ -181,10 +181,57 @@ export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
     from: 6060,
     text: "The end goal is an internet where people communicate desired outcomes and generative AI returns the result directly.",
   },
+
+  // 07 · Baseline and improvement evidence — chapter starts at frame 6270.
+  {
+    id: "31-evidence-baseline",
+    from: 6270,
+    text: "Our measured baseline is keyword-ranked provider search plus fixed pages, modeling the basic search-and-click flow people use today.",
+  },
+  {
+    id: "32-evidence-outcome",
+    from: 6450,
+    text: "The baseline returns links and instructions for the user; our solution reasons toward an authorized, persisted outcome.",
+  },
+  {
+    id: "33-evidence-discovery",
+    from: 6630,
+    text: "For blurry eyesight, lexical search looks for shared words while semantic discovery connects the request to vision assessment.",
+  },
+  {
+    id: "34-evidence-score",
+    from: 6810,
+    text: "Across four fixed cases, relevant top-provider accuracy improved from two out of four to four out of four.",
+  },
+  {
+    id: "35-evidence-composition",
+    from: 6990,
+    text: "For a birthday venue and food, the baseline finds two providers separately; our solution combines both into one plan.",
+  },
+  {
+    id: "36-evidence-steps",
+    from: 7170,
+    text: "Modeled navigation falls from six steps to two for composition, but these are assumptions, not observed user telemetry.",
+  },
+  {
+    id: "37-evidence-persistence",
+    from: 7350,
+    text: "A persistent result means the first authorized action changes durable provider state and records a decision event.",
+  },
+  {
+    id: "38-evidence-followup",
+    from: 7510,
+    text: "A later request receives current state and recent events, so it can explain what is already arranged without starting over.",
+  },
+  {
+    id: "39-evidence-boundary",
+    from: 7670,
+    text: "State updates and idempotency are tested; a distinct semantic follow-up is supported, but not yet measured.",
+  },
 ];
 
 const AUDIO_DIRECTORY = "submission-tts-temp";
-const TEMPORARY_NARRATION_END_FRAME = 6270;
+const TEMPORARY_NARRATION_END_FRAME = 7830;
 
 export function TemporarySubmissionNarration() {
   return (

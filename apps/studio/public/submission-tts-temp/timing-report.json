@@ -310,5 +310,61 @@
     "durationSeconds": 5.256,
     "remainingSeconds": 0.077,
     "rate": "+48%"
+  },
+  {
+    "id": "40-changelog-baseline",
+    "from": 7830,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.904,
+    "remainingSeconds": 0.096,
+    "rate": "+50%"
+  },
+  {
+    "id": "41-changelog-runtime",
+    "from": 8010,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.832,
+    "remainingSeconds": 0.168,
+    "rate": "+43%"
+  },
+  {
+    "id": "42-changelog-reliability",
+    "from": 8190,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.808,
+    "remainingSeconds": 0.192,
+    "rate": "+48%"
+  },
+  {
+    "id": "43-changelog-discovery",
+    "from": 8370,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.856,
+    "remainingSeconds": 0.144,
+    "rate": "+50%"
+  },
+  {
+    "id": "44-changelog-composition",
+    "from": 8550,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.376,
+    "remainingSeconds": 0.624,
+    "rate": "+30%"
+  },
+  {
+    "id": "45-changelog-outcomes",
+    "from": 8730,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.52,
+    "remainingSeconds": 0.48,
+    "rate": "+50%"
+  },
+  {
+    "id": "46-changelog-direction",
+    "from": 8910,
+    "windowSeconds": 6.0,
+    "durationSeconds": 5.88,
+    "remainingSeconds": 0.12,
+    "rate": "+62%"
   }
 ]

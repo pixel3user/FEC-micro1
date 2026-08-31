@@ -228,10 +228,47 @@ export const TEMPORARY_NARRATION_CUES: TemporaryNarrationCue[] = [
     from: 7670,
     text: "The evidence supports replacing more task-specific workflow implementation with reasoning, while trusted execution systems remain.",
   },
+
+  // 08 · Improvement changelog — chapter starts at frame 7830.
+  {
+    id: "40-changelog-baseline",
+    from: 7830,
+    text: "We started from the simple baseline: every expected journey needs its own route, form, branches, integrations, and result view.",
+  },
+  {
+    id: "41-changelog-runtime",
+    from: 8010,
+    text: "The first experiment replaced those per-intent screens with one shared runtime, generated experiences, and a generic action bridge.",
+  },
+  {
+    id: "42-changelog-reliability",
+    from: 8190,
+    text: "Malformed model output and browser failures taught us to replace direct parsing with validation, fallback, error capture, and repair.",
+  },
+  {
+    id: "43-changelog-discovery",
+    from: 8370,
+    text: "Semantic discovery fixed vocabulary mismatch, improving relevant top-provider ranking from two of four to four of four fixed cases.",
+  },
+  {
+    id: "44-changelog-composition",
+    from: 8550,
+    text: "Composition then combined two separate services into one tested plan and one user-facing experience.",
+  },
+  {
+    id: "45-changelog-outcomes",
+    from: 8730,
+    text: "A contradictory purchase message led us to replace free-text success guessing with typed decisions, state events, and idempotency.",
+  },
+  {
+    id: "46-changelog-direction",
+    from: 8910,
+    text: "The final evaluation shows the overall gain and its limits: generated UI is today’s bridge, while direct verified results are the next experiment.",
+  },
 ];
 
 const AUDIO_DIRECTORY = "submission-tts-temp";
-const TEMPORARY_NARRATION_END_FRAME = 7830;
+const TEMPORARY_NARRATION_END_FRAME = 9090;
 
 export function TemporarySubmissionNarration() {
   return (

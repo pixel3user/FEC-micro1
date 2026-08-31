@@ -11,6 +11,7 @@ import {
 } from "../submission/OpeningProblem";
 import { MarketChapter, UseCaseChapter } from "../submission/UseCaseMarket";
 import { EvidenceChapter } from "../submission/EvidenceChapter";
+import { ImprovementChangelog } from "../submission/ImprovementChangelog";
 import { PersistentHeader, SubmissionCanvas } from "../submission/Primitives";
 import { TemporarySubmissionNarration } from "../submission/TemporaryNarration";
 import { chapters } from "../submission/design";
@@ -48,6 +49,9 @@ export function SubmissionVideo() {
         <EvidenceChapter />
       </Sequence>
       <Sequence from={chapters[8].from} durationInFrames={chapters[8].duration}>
+        <ImprovementChangelog />
+      </Sequence>
+      <Sequence from={chapters[9].from} durationInFrames={chapters[9].duration}>
         <ClosingChapter />
       </Sequence>
       <TemporarySubmissionNarration />

@@ -2,7 +2,7 @@ export const submission = {
   width: 1920,
   height: 1080,
   fps: 30,
-  durationInFrames: 8160,
+  durationInFrames: 9420,
   color: {
     canvas: "#fdfdfc",
     paper: "#f2f0ee",
@@ -40,7 +40,8 @@ export const chapters = [
   { id: "agents", label: "How agents help", from: 4470, duration: 900 },
   { id: "future", label: "Context · Tools · Memory", from: 5370, duration: 900 },
   { id: "evidence", label: "Baseline · Improvement", from: 6270, duration: 1560 },
-  { id: "close", label: "The direction", from: 7830, duration: 330 },
+  { id: "changelog", label: "Improvement changelog", from: 7830, duration: 1260 },
+  { id: "close", label: "The direction", from: 9090, duration: 330 },
 ] as const;
 
 export type SubmissionChapter = (typeof chapters)[number];

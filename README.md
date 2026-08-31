@@ -25,8 +25,21 @@ This is deliberately not a conventional API marketplace:
 - Optimistic revision control and idempotent action retries.
 - Docker deployment and deterministic no-credit tests.
 
+## Showcase (interactive, no video render)
+
+A developer-facing walkthrough of the repository — the thesis, one chapter for each core implementation PR (#1–#5), and an end-to-end workflow — built with [Remotion](https://remotion.dev). It runs live in the browser via `@remotion/player` (play / pause / scrub); no MP4 export is required. Each core PR chapter follows the same three acts: the problem, condensed-but-faithful code from the repo, and the documented live evidence.
+
+Submission artifacts: [actual project progression and evidence](docs/hackathon-submission.md) · [coding-agent trajectory and tool disclosure](docs/agent-trajectory.md)
+
+- Live player (published from `main`): https://pixel3user.github.io/FEC-micro1/
+- Run locally: `pnpm --filter "@agent-web/studio" dev`
+- Remotion editor with timeline: `pnpm --filter "@agent-web/studio" studio`
+
+Captions are on-screen; a voice track can be layered later without changing the compositions.
+
 ## Repository
 
+- `apps/studio` — interactive Remotion showcase (light glass theme, in-browser player, Pages workflow).
 - `apps/api` — stateless Fastify API, index, worlds, model runtime, and persistence.
 - `apps/web` — provider studio, discovery, generated-code sandbox, and decision trace.
 - `packages/contracts` — transport envelopes only; no business action definitions.
@@ -85,11 +98,13 @@ The API applies idempotent schema DDL when it starts.
 
 The configurable default is `deepseek/deepseek-v4-flash-0731`. At implementation time, the [OpenRouter model catalog](https://openrouter.ai/api/v1/models) listed structured-output and tool support with prices around $0.03 per million input tokens and $0.16 per million output tokens. Prices and availability can change, so verify the catalog before a public demo.
 
+Live behaviour has been verified against OpenRouter: provider-world creation and runtime UI generation both return schema-valid JSON, and when the primary model emits reasoning traces or truncates a large document, the runtime strips the trace and falls back to `OPENROUTER_FALLBACK_MODELS`. Observed cost is a fraction of a cent per call. A running cost/usage total is available at `GET /v1/usage`.
+
 Budget controls in this repository:
 
-- One inexpensive model configured for all roles.
-- Per-call output caps.
-- At most one repair call for malformed JSON.
+- One inexpensive primary model with an optional ordered fallback list.
+- Per-call output caps and per-call request timeouts.
+- Robust JSON extraction (strips `<think>` reasoning and fences) plus a single bounded repair retry.
 - PostgreSQL retrieval instead of model-based provider search.
 - Deterministic tests that never contact OpenRouter.
 - Usage and reported cost metadata logged by the API when OpenRouter supplies it.
@@ -161,6 +176,17 @@ _agent.example.com TXT "agent-manifest=https://api.example.net/.well-known/agent
 
 `GET /v1/resolve/example.com` checks the centralized index first and then that DNS record. This prototype resolves the location but does not yet implement DNSSEC identity verification.
 
+## Evaluation and adversarial testing
+
+A baseline-vs-agent evaluation harness measures discovery quality, task-specific UI, user steps, and cross-provider composition on identical seeded data. See [`docs/evaluation.md`](docs/evaluation.md) for method and live results (on four fixed cases, the agent reached a 4/4 discovery top-hit rate and produced task-specific UI for 4/4; the full live run cost about half a cent).
+
+```bash
+MODEL_MODE=mock pnpm --filter @agent-web/api eval   # free, deterministic
+MODEL_MODE=live pnpm --filter @agent-web/api eval    # real numbers, a few tenths of a cent
+```
+
+Adversarial tests (`apps/api/src/adversarial.test.ts`) cover prompt injection in provider data, cross-world state isolation, concurrent-invocation serialization, and hostile-argument echo containment.
+
 ## Validation
 
 ```bash
@@ -178,7 +204,7 @@ Deploy the API and PostgreSQL to a public host, build the web client with the pu
 ## Prototype limitations
 
 - Provider decisions are intentionally model-authoritative and are not suitable for real money, legal, medical, or other consequential production effects.
-- PostgreSQL search is lexical; semantic embeddings can be added later if measured discovery quality requires them.
+- Semantic discovery blends embeddings with lexical ranking and retains lexical fallback; measured quality depends on the live embedding model.
 - Multi-replica global rate limits need a shared Redis-backed limiter.
 - DNS records locate manifests but do not yet establish a DNSSEC/DANE trust chain.
 - Generated code is isolated, but this remains experimental code execution and should be reviewed before extending sandbox permissions.

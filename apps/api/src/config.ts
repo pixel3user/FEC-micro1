@@ -15,6 +15,11 @@ const EnvironmentSchema = z.object({
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_BASE_URL: z.url().default("https://openrouter.ai/api/v1"),
   OPENROUTER_MODEL: z.string().default("deepseek/deepseek-v4-flash-0731"),
+  OPENROUTER_FALLBACK_MODELS: z.string().default("openai/gpt-4o-mini"),
+  OPENROUTER_EMBEDDING_MODEL: z
+    .string()
+    .default("openai/text-embedding-3-small"),
+  SEMANTIC_SEARCH: z.enum(["on", "off"]).default("on"),
   PUBLIC_API_URL: z.url().default("http://localhost:8787"),
   WEB_ORIGIN: z.string().default("http://localhost:5173"),
 });
@@ -29,6 +34,9 @@ export type AppConfig = {
   openRouterApiKey?: string;
   openRouterBaseUrl: string;
   openRouterModel: string;
+  openRouterFallbackModels: string[];
+  openRouterEmbeddingModel: string;
+  semanticSearch: boolean;
   publicApiUrl: string;
   webOrigins: string[];
 };
@@ -49,6 +57,11 @@ export function loadConfig(
       : {}),
     openRouterBaseUrl: parsed.OPENROUTER_BASE_URL.replace(/\/$/, ""),
     openRouterModel: parsed.OPENROUTER_MODEL,
+    openRouterFallbackModels: parsed.OPENROUTER_FALLBACK_MODELS.split(",")
+      .map((model) => model.trim())
+      .filter((model) => model.length > 0),
+    openRouterEmbeddingModel: parsed.OPENROUTER_EMBEDDING_MODEL,
+    semanticSearch: parsed.SEMANTIC_SEARCH === "on",
     publicApiUrl: parsed.PUBLIC_API_URL.replace(/\/$/, ""),
     webOrigins: parsed.WEB_ORIGIN.split(",").map((origin) => origin.trim()),
   };
